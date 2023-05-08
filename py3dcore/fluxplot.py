@@ -12,7 +12,6 @@ from datetime import timedelta
 import py3dcore
 from py3dcore.methods.method import BaseMethod
 
-from sunpy.coordinates import frames, get_horizons_coord
 import heliosat
 
 from py3dcore.models.toroidal import thin_torus_gh, thin_torus_qs, thin_torus_sq
@@ -62,7 +61,6 @@ def generate_ensemble(path: str, dt: datetime.datetime, reference_frame: str="HC
         reference_frame_to  reference frame for output data
         perc                percentage of quantile to be used
         max_index           how much of ensemble is kept
-        custom_data         path to custom data
     Returns:
         ensemble_data 
     """
@@ -367,7 +365,7 @@ def fullinsitu(observer, t_fit=None, start=None, end=None, filepath=None, ref_fr
     tind = tempt.index(temp_fit)
     #print(tind, t[tind])
     
-     # plotting magnetic field data
+    # plotting magnetic field data
     plt.plot(t[0:tind], np.sqrt(np.sum(b[0:tind]**2, axis=1)), "k", alpha=0.5, lw=3, label='|$\mathbf{B}$|')
     plt.plot(t[0:tind], b[0:tind, 0], "r", alpha=1, lw=lw_insitu, label='B$_r$')
     plt.plot(t[0:tind], b[0:tind, 1], "g", alpha=1, lw=lw_insitu, label='B$_t$')
@@ -387,8 +385,6 @@ def fullinsitu(observer, t_fit=None, start=None, end=None, filepath=None, ref_fr
         plt.plot(t[tind+1:-1], b[tind+1:-1, 1], "g", alpha=1, lw=lw_insitu)
         plt.plot(t[tind+1:-1], b[tind+1:-1, 2], "b", alpha=1, lw=lw_insitu)    
             
-        
-        
     date_form = mdates.DateFormatter("%h %d %H")
     plt.gca().xaxis.set_major_formatter(date_form)
            
@@ -435,7 +431,7 @@ def returnfixedmodel(filepath):
 
 def returnmodel(filepath):
     
-    ''' returns a model using the statistics from a previous result'''
+    ''' returns a model using the parameters of the run with min(eps) from a previous result'''
     
     t_launch = BaseMethod(filepath).dt_0
     
@@ -501,7 +497,7 @@ def full3d(spacecraftlist=['solo', 'psp'], planetlist=['Earth'], t=None, traj=50
         
         
     if 'psp' in spacecraftlist:
-        plot_traj(ax, sat='Parker Solar Probe', t_snap=t, frame="HEEQ", traj_pos=True, traj_major=traj, traj_minor=None, color=psp_color, **kwargs)
+        plot_traj(ax, sat='Parker Solar Probe', t_snap=t, frame="SPP_RTN", traj_pos=True, traj_major=traj, traj_minor=None, color=psp_color, **kwargs)
         
     
     if 'Earth' in planetlist:
@@ -540,11 +536,14 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
         observer = "SOLO"
         
     elif sat == "Parker Solar Probe":
+        print('observer', sat)
         observer = "PSP"
-        frame = "SPP"
+        #frame = "SPP"
         
     else:
         print('no observer specified')
+        
+    #observer_obj.trajectory(dt, reference_frame=reference_frame    
         
     inst = getattr(heliosat, observer)() # get observer obj
     print('inst', inst)
@@ -554,17 +553,17 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
 
     if traj_pos:
         print('t_snap', t_snap)
-        pos = inst.trajectory(t_snap, frame)
+        pos = inst.trajectory(t_snap, reference_frame=frame)
         print('pos', pos)
 
         ax.scatter(*pos.T, s=_s, **kwargs)
         
     if traj_major and traj_major > 0:
-        traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_major, traj_major)], frame)
+        traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_major, traj_major)], reference_frame=frame)
         #ax.plot(*traj.T, **kwargs)
         
     if traj_minor and traj_minor > 0:
-        traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_minor, traj_minor)], frame)
+        traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_minor, traj_minor)], reference_frame=frame)
         
     if "ls" in kwargs:
         kwargs.pop("ls")
