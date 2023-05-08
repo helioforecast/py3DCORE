@@ -493,7 +493,7 @@ def full3d(spacecraftlist=['solo', 'psp'], planetlist=['Earth'], t=None, traj=50
     
     if 'solo' in spacecraftlist:
 
-        plot_traj(ax, sat='Solar Orbiter', t_snap=t, frame="HEEQ", traj_pos=True, traj_major=traj, traj_minor=None, custom_data='sunpy', color=solo_color, **kwargs)
+        plot_traj(ax, sat='Solar Orbiter', t_snap=t, frame="SOLO_SUN_RTN", traj_pos=True, traj_major=traj, traj_minor=None, color=solo_color, **kwargs)
         
         
     if 'psp' in spacecraftlist:
@@ -538,7 +538,6 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
     elif sat == "Parker Solar Probe":
         print('observer', sat)
         observer = "PSP"
-        #frame = "SPP"
         
     else:
         print('no observer specified')
@@ -607,11 +606,11 @@ def full3d_multiview(t_launch, filepath):
 
     plot_3dcore(ax1, model_obj, TP_A, color=C_A, light_source=True)
     #plot_3dcore_field(ax1, model_obj, color=C_A, step_size=0.0005, lw=1.0, ls="-")
-    plot_traj(ax1, "Parker Solar Probe", t_snap=TP_A, frame="SPP", color=C_A)
+    plot_traj(ax1, "Parker Solar Probe", t_snap=TP_A, frame="SPP_RTN", color=C_A)
     
     #plot_3dcore(ax1, model_obj, TP_B, color=C_B, light_source = True)
     #plot_3dcore_field(ax1, model_obj, color=C_B, step_size=0.001, lw=1.0, ls="-")
-    #plot_traj(ax1, "Solar Orbiter", t_snap = TP_B, frame="HEEQ", custom_data = 'sunpy', color=C_B)
+    #plot_traj(ax1, "Solar Orbiter", t_snap = TP_B, frame="SOLO_SUN_RTN", custom_data = 'sunpy', color=C_B)
     
     #dotted trajectory
     #plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
@@ -625,21 +624,21 @@ def full3d_multiview(t_launch, filepath):
     
     plot_3dcore(ax2, model_obj, TP_A, color=C_A, light_source=True)
     #plot_3dcore_field(ax2, model_obj, color=C_A, step_size=0.0005, lw=1.0, ls="-")
-    plot_traj(ax2, "Parker Solar Probe", t_snap=TP_A, frame="SPP", color=C_A)
+    plot_traj(ax2, "Parker Solar Probe", t_snap=TP_A, frame="SPP_RTN", color=C_A)
     
     #plot_3dcore(ax2, model_obj, TP_B, color=C_B, light_source = True)
     #plot_3dcore_field(ax2, model_obj, color=C_B, step_size=0.001, lw=1.0, ls="-")
-    #plot_traj(ax2, "Solar Orbiter", t_snap = TP_B, frame="HEEQ", custom_data = 'sunpy', color=C_B)
+    #plot_traj(ax2, "Solar Orbiter", t_snap = TP_B, frame="SOLO_SUN_RTN", custom_data = 'sunpy', color=C_B)
     plot_shift(ax2, 0.26, -0.41, 0.08, 0.0) 
     
     
     ############## edge on view panel
     plot_configure(ax3, view_azim=65, view_elev=-5, view_radius=.01, light_source=True)
-    plot_traj(ax3, "Parker Solar Probe", t_snap=TP_A, frame="SPP", color=C_A)
+    plot_traj(ax3, "Parker Solar Probe", t_snap=TP_A, frame="SPP_RTN", color=C_A)
 
     #plot_3dcore(ax3, model_obj, TP_B, color=C_B, light_source = True)
     ##plot_3dcore_field(ax3, model_obj, color=C_B, step_size=0.001, lw=1.0, ls="-")
-    #plot_traj(ax3, "Solar Orbiter", t_snap = TP_B, frame="HEEQ", custom_data = 'sunpy', color=C_B)
+    #plot_traj(ax3, "Solar Orbiter", t_snap = TP_B, frame="SOLO_SUN_RTN", custom_data = 'sunpy', color=C_B)
 
     plot_shift(ax3, 0.26, -0.41, 0.08, 0.0)
 
