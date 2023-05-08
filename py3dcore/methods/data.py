@@ -7,6 +7,8 @@ import heliosat
 import numba
 import numpy as np
 from scipy.signal import detrend, welch
+######
+import matplotlib.dates as mdates
 
 
 class FittingData(object):
@@ -159,13 +161,16 @@ class FittingData(object):
                 cached=True,
                 **kwargs
             )
-
+            # dt are fitting points, dt_all is with start and end time
             dt_all = [dt_s] + dt + [dt_e]
+            #print(data)
+
             trajectory = observer_obj.trajectory(
                 dt_all, reference_frame=self.reference_frame
             )
             b_all = np.zeros((len(data) + 2, 3))
             b_all[1:-1] = data
+            
             mask = [1] * len(b_all)
             mask[0] = 0
             mask[-1] = 0

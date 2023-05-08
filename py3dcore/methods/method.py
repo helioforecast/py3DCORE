@@ -26,7 +26,7 @@ class BaseMethod(object):
     def __init__(self, path: Optional[str] = None) -> None:
         if path:
             self.locked = True
-            self._load(path)
+            self.load(path)
         else:
             self.locked = False
 
