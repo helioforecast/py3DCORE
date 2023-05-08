@@ -1,9 +1,9 @@
-## 3DCORE
+# 3DCORE
 ========
 
 Python implementations of the class of models running under the name of "3D Coronal Rope Ejection Model", a modelling techniqe for coronal mass ejection (CME) flux ropes. Originally forked from https://github.com/ajefweiss/py3DCORE.
 
-# Installation
+## Installation
 ------------
 
 Install the latest version manually using `git`:
@@ -16,7 +16,7 @@ or the original version from https://github.com/ajefweiss/py3DCORE.
 
 ------------
 
-# Notes on HelioSat
+## Notes on HelioSat
 ------------
 
 3DCORE uses the package HelioSat (https://github.com/ajefweiss/HelioSat) to retrieve spacecraft data and other spacecraft related information (positions, trajectories, etc.). 
