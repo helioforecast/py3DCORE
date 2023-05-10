@@ -24,7 +24,7 @@ def thin_torus_qs(
     q_xs: np.ndarray,
     s: np.ndarray,
 ) -> None:
-    (q0, q1, q2) = q
+    (q0, q1, q2) = q # extract the three coordinates
 
     delta = iparams[5]
 
@@ -40,7 +40,7 @@ def thin_torus_qs(
         ]
     )
 
-    s[:] = _numba_quaternion_rotate(x, q_xs)
+    s[:] = _numba_quaternion_rotate(x, q_xs)  # rotate from x to s
 
 
 @guvectorize(
@@ -58,15 +58,29 @@ def thin_torus_sq(
     q_sx: np.ndarray,
     q: np.ndarray,
 ) -> None:
+    """
+    Simulates the thin torus shape 
+        
+    Arguments:
+        s         trajectory of observer
+        iparams   initial parameters array
+        sparams   state parameters array
+        q_sx      quaternions to rotate from s to x 
+        q         array with zeros of shape (len(iparams_arr),3)
+        
+    Returns:
+        None      
+    """
+        
     delta = iparams[5]
 
     (_, rho_0, rho_1, _) = sparams
 
-    _s = np.array([0, s[0], s[1], s[2]]).astype(s.dtype)
+    _s = np.array([0, s[0], s[1], s[2]]).astype(s.dtype) #create 4vector
 
-    xs = _numba_quaternion_rotate(_s, q_sx)
+    xs = _numba_quaternion_rotate(_s, q_sx) #rotate from s to x
 
-    (x0, x1, x2) = xs
+    (x0, x1, x2) = xs # extract three coordinates
 
     if x0 == rho_0:
         if x1 >= 0:
@@ -97,6 +111,8 @@ def thin_torus_sq(
         r = x2 / delta / rho_1 / np.sin(phi) / np.sin(psi / 2) ** 2
     else:
         r = np.abs(rd / np.cos(phi) / np.sin(psi / 2) ** 2 / rho_1)
+        
+    #store new coordinates in q
 
     q[0] = r
     q[1] = psi
@@ -158,6 +174,21 @@ def thin_torus_gh(
     q_xs: np.ndarray,
     b: np.ndarray,
 ) -> None:
+    
+    """
+    Implements the gold-hoyle model.
+    
+    Arguments:
+        q              array of shape (len(self.iparams_arr),3) containing zeros 
+        iparams        initial parameter array
+        sparams        state parameter array
+        q_xs           quaternion to rotate from x to s 
+        b              out mag field
+    
+    Returns:
+        None
+    """
+    
     bsnp = np.empty((3,))
 
     (q0, q1, q2) = (q[0], q[1], q[2])

@@ -16,6 +16,21 @@ from ..model import SimulationBlackBox
 
 
 class BaseMethod(object):
+    """
+    Class(object) used for fitting.
+
+    Arguments:
+        path   Optional     where to save
+    Returns:
+        None
+
+    Functions:
+        add_observer
+        initialize
+        save
+        load
+    """
+    
     dt_0: datetime.datetime
     locked: bool
     model: Type[SimulationBlackBox]
@@ -37,10 +52,27 @@ class BaseMethod(object):
         dt_s: Union[str, datetime.datetime],
         dt_e: Union[str, datetime.datetime],
         dt_shift: datetime.timedelta = None,
+        custom_data = None,
     ) -> None:
+        
+        """
+        Appends an observer.
+    
+        Arguments:
+            observer          name of the observer
+            dt                datetime points to be used for fitting
+            dt_s              reference point prior to the fluxrope
+            dt_e              reference point after the fluxrope
+            dt_shift          datetime can be shifted
+    
+        Returns:
+            None
+        """
+        
         self.observers.append(
-            [observer, sanitize_dt(dt), sanitize_dt(dt_s), sanitize_dt(dt_e), dt_shift]
-        )
+            [observer, sanitize_dt(dt), sanitize_dt(dt_s), sanitize_dt(dt_e), dt_shift, custom_data]
+        ) # append observer with sanitized datetime (HelioSat sanitize deals with different timezones)
+
 
     def initialize(
         self,
@@ -48,6 +80,23 @@ class BaseMethod(object):
         model: Type[SimulationBlackBox],
         model_kwargs: dict = {},
     ) -> None:
+        
+        """
+        Initializes the Fitter.
+        Sets the following properties for self:
+            dt_0              sanitized launch time
+            observers         empty list
+            reference_frame   reference frame to work in
+    
+        Arguments:
+            dt_0              launch time
+            model             fluxrope model
+            model_kwargs      dictionary containing all kwargs for the model
+    
+        Returns:
+            None
+        """
+        
         if self.locked:
             raise RuntimeError("is locked")
 

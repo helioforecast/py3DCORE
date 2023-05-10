@@ -18,7 +18,26 @@ from .thin_torus import thin_torus_gh, thin_torus_qs, thin_torus_sq
 
 class ToroidalModel(SimulationBlackBox):
     """Implements the torus model.
-
+    
+    Sets the following properties for self:
+    mag_model                           model for magnetic field
+    shape_model                         model for cme shape
+    
+    Arguments:
+         dt_0                           launch time
+         ensemble_size                  number of particles to be accepted
+         iparams         dict = {}      initial parameters
+         shape_model     "thin_torus"   model for cme shape
+         mag_model       "gh"           model for magnetic field
+    
+    Returns:
+        None
+    
+    Functions:
+        propagator
+        simulator_mag
+        visualize_shape
+        
     Model Parameters
     ================
         For this specific model there are a total of 14 initial parameters which are as follows:
@@ -95,12 +114,26 @@ class ToroidalModel(SimulationBlackBox):
         self.dt_t = dt_to
 
     def simulator_mag(self, pos: np.ndarray, out: np.ndarray) -> None:
+        
+        """
+        Simulates the magnetic field 
+
+        Arguments:
+            pos         trajectory of observer
+            out         magnetic field 
+
+        Returns:
+            None      
+        """
+        
         _q_tmp = np.zeros((len(self.iparams_arr), 3))
 
         if self.shape_model == "thin_torus":
+            # implement the thin torus model and rotate to s coordinates
             thin_torus_sq(pos, self.iparams_arr, self.sparams_arr, self.qs_sx, _q_tmp)
 
             if self.mag_model == "gh":
+                # implement the goldhoyle model
                 thin_torus_gh(
                     _q_tmp, self.iparams_arr, self.sparams_arr, self.qs_xs, out
                 )
@@ -145,7 +178,20 @@ class ToroidalModel(SimulationBlackBox):
 def _numba_propagator(
     t_offset: float, iparams: np.ndarray, _: np.ndarray, sparams: np.ndarray
 ) -> None:
-    (t_i, _, _, _, d, _, r, v, _, n_a, n_b, b_i, bg_d, bg_v) = iparams
+    
+    """
+    Propagates the model.        
+    Arguments:
+        t_offset            correction of t 
+        iparams             initial parameters
+        sparams             state parameters
+        
+    Returns:
+        b_out               magnetic field values
+        s_out     None      state parameters
+    """
+    
+    (t_i, _, _, _, d, _, r, v, _, n_a, n_b, b_i, bg_d, bg_v) = iparams #collect iparams
 
     # rescale parameters
     bg_d = bg_d * 1e-7
@@ -163,6 +209,8 @@ def _numba_propagator(
     rho_1 = d * (rt**n_a) / 2
     rho_0 = (rt - rho_1) / 2
     b_t = b_i * (2 * rho_0) ** (-n_b)
+    
+    #store state parameters
 
     sparams[0] = vt
     sparams[1] = rho_0
