@@ -158,7 +158,7 @@ class FittingData(object):
         if noise_model == "psd":
             # get data for each observer
             for o in range(self.length):
-                observer, dt, dt_s, dt_e, _ = self.observers[o]
+                observer, dt, dt_s, dt_e, _, _ = self.observers[o]
 
                 observer_obj = getattr(heliosat, observer)()
 
