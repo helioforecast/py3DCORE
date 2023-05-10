@@ -481,7 +481,7 @@ def full3d(spacecraftlist=['solo', 'psp'], planetlist=['Earth'], t=None, traj=50
     sns.set_style("ticks",{'grid.linestyle': '--'})
     fsize=15
 
-    fig = plt.figure(figsize=(15,12),dpi=300)
+    fig = plt.figure(figsize=(13,9),dpi=300)
     ax = fig.add_subplot(111, projection='3d')
     
     plot_configure(ax, view_azim=view_azim, view_elev=view_elev, view_radius=view_radius)
@@ -493,11 +493,11 @@ def full3d(spacecraftlist=['solo', 'psp'], planetlist=['Earth'], t=None, traj=50
     
     if 'solo' in spacecraftlist:
 
-        plot_traj(ax, sat='Solar Orbiter', t_snap=t, frame="SOLO_SUN_RTN", traj_pos=True, traj_major=traj, traj_minor=None, color=solo_color, **kwargs)
+        plot_traj(ax, sat='Solar Orbiter', t_snap=t, frame="HEEQ", traj_pos=True, traj_major=traj, traj_minor=None, color=solo_color, **kwargs)
         
         
     if 'psp' in spacecraftlist:
-        plot_traj(ax, sat='Parker Solar Probe', t_snap=t, frame="SPP_RTN", traj_pos=True, traj_major=traj, traj_minor=None, color=psp_color, **kwargs)
+        plot_traj(ax, sat='Parker Solar Probe', t_snap=t, frame="HEEQ", traj_pos=True, traj_major=traj, traj_minor=None, color=psp_color, **kwargs)
         
     
     if 'Earth' in planetlist:
@@ -536,7 +536,7 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
         observer = "SOLO"
         
     elif sat == "Parker Solar Probe":
-        print('observer', sat)
+        print('observer:', sat)
         observer = "PSP"
         
     else:
@@ -551,18 +551,19 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
     _s = kwargs.pop("s")
 
     if traj_pos:
-        print('t_snap', t_snap)
-        pos = inst.trajectory(t_snap, reference_frame=frame)
-        print('pos', pos)
+        print('t_snap:', t_snap)
+        pos = inst.trajectory(t_snap, reference_frame="SPP_RTN")
+        print('pos [HEEQ - xyz]:', pos)
+        print('pos:')
 
         ax.scatter(*pos.T, s=_s, **kwargs)
         
     if traj_major and traj_major > 0:
-        traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_major, traj_major)], reference_frame=frame)
-        #ax.plot(*traj.T, **kwargs)
+        traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_major, traj_major)], reference_frame="HEEQ")
+        ax.plot(*traj.T, **kwargs)
         
     if traj_minor and traj_minor > 0:
-        traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_minor, traj_minor)], reference_frame=frame)
+        traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_minor, traj_minor)], reference_frame="HEEQ")
         
     if "ls" in kwargs:
         kwargs.pop("ls")
@@ -570,7 +571,7 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
     _ls = "--"
     _lw = kwargs.pop("lw") / 2
 
-    ax.plot(*traj.T, ls=_ls, lw=_lw, **kwargs)
+    # ax.plot(*traj.T, ls=_ls, lw=_lw, **kwargs)
 
 
 def full3d_multiview(t_launch, filepath):
@@ -606,11 +607,11 @@ def full3d_multiview(t_launch, filepath):
 
     plot_3dcore(ax1, model_obj, TP_A, color=C_A, light_source=True)
     #plot_3dcore_field(ax1, model_obj, color=C_A, step_size=0.0005, lw=1.0, ls="-")
-    plot_traj(ax1, "Parker Solar Probe", t_snap=TP_A, frame="SPP_RTN", color=C_A)
+    plot_traj(ax1, "Parker Solar Probe", t_snap=TP_A, frame="HEEQ", color=C_A)
     
     #plot_3dcore(ax1, model_obj, TP_B, color=C_B, light_source = True)
     #plot_3dcore_field(ax1, model_obj, color=C_B, step_size=0.001, lw=1.0, ls="-")
-    #plot_traj(ax1, "Solar Orbiter", t_snap = TP_B, frame="SOLO_SUN_RTN", custom_data = 'sunpy', color=C_B)
+    #plot_traj(ax1, "Solar Orbiter", t_snap = TP_B, frame="HEEQ", custom_data = 'sunpy', color=C_B)
     
     #dotted trajectory
     #plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
@@ -624,21 +625,21 @@ def full3d_multiview(t_launch, filepath):
     
     plot_3dcore(ax2, model_obj, TP_A, color=C_A, light_source=True)
     #plot_3dcore_field(ax2, model_obj, color=C_A, step_size=0.0005, lw=1.0, ls="-")
-    plot_traj(ax2, "Parker Solar Probe", t_snap=TP_A, frame="SPP_RTN", color=C_A)
+    plot_traj(ax2, "Parker Solar Probe", t_snap=TP_A, frame="HEEQ", color=C_A)
     
     #plot_3dcore(ax2, model_obj, TP_B, color=C_B, light_source = True)
     #plot_3dcore_field(ax2, model_obj, color=C_B, step_size=0.001, lw=1.0, ls="-")
-    #plot_traj(ax2, "Solar Orbiter", t_snap = TP_B, frame="SOLO_SUN_RTN", custom_data = 'sunpy', color=C_B)
+    #plot_traj(ax2, "Solar Orbiter", t_snap = TP_B, frame="HEEQ", custom_data = 'sunpy', color=C_B)
     plot_shift(ax2, 0.26, -0.41, 0.08, 0.0) 
     
     
     ############## edge on view panel
     plot_configure(ax3, view_azim=65, view_elev=-5, view_radius=.01, light_source=True)
-    plot_traj(ax3, "Parker Solar Probe", t_snap=TP_A, frame="SPP_RTN", color=C_A)
+    plot_traj(ax3, "Parker Solar Probe", t_snap=TP_A, frame="HEEQ", color=C_A)
 
     #plot_3dcore(ax3, model_obj, TP_B, color=C_B, light_source = True)
     ##plot_3dcore_field(ax3, model_obj, color=C_B, step_size=0.001, lw=1.0, ls="-")
-    #plot_traj(ax3, "Solar Orbiter", t_snap = TP_B, frame="SOLO_SUN_RTN", custom_data = 'sunpy', color=C_B)
+    #plot_traj(ax3, "Solar Orbiter", t_snap = TP_B, frame="HEEQ", custom_data = 'sunpy', color=C_B)
 
     plot_shift(ax3, 0.26, -0.41, 0.08, 0.0)
 
@@ -658,7 +659,16 @@ def plot_3dcore(ax, obj, t_snap, light_source=False, **kwargs):
 
     obj.propagator(t_snap)
     wf_model = obj.visualize_shape(0, )  #visualize_wireframe(index=0)
+    #wf_model = obj.visualize_shape(iparam_index=2)  
+    #ax.plot_wireframe(*wf_model.T, **kwargs)
     ax.plot_wireframe(*wf_model.T, **kwargs)
+
+    ## from reader notebook
+    #fit_wind.model_obj.propagator(datetime.datetime(2022, 2, 3, tzinfo=datetime.timezone.utc))
+    #fig = plt.figure(figsize=(12, 12))
+    #ax = fig.add_subplot(111, projection='3d')
+    #wf=fit_wind.model_obj.visualize_shape(iparam_index=2)
+    #ax.plot_wireframe(*wf.T)
     
     
 def plot_circle(ax,dist,**kwargs):        
