@@ -187,8 +187,8 @@ def get_overwrite(out, heeq=True):
                 "minimum": out[6] - 0.1
             },
         "cme_launch_velocity": {
-                "maximum": out[7] + 200 + 1,
-                "minimum": out[7] + 200 - 1
+                "maximum": out[7] + 100 + 1,  # faster speed
+                "minimum": out[7] + 100 - 1
             },
         "t_factor": {
                 "maximum": out[8] + 1,

@@ -201,7 +201,7 @@ class SimulationBlackBox(object):
         dt: Union[str, datetime.datetime, Sequence[str], Sequence[datetime.datetime]],
         pos: Union[np.ndarray, Sequence[np.ndarray]],
         sparams: Optional[Sequence[int]] = None,
-    ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+        ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         
          """
         Handles the distributions for each initial parameter and generates quaternions
