@@ -198,12 +198,11 @@ class SimulationBlackBox(object):
 
     def simulator(
         self,
-        dt: Union[str, datetime.datetime, Sequence[str], Sequence[datetime.datetime]],
-        pos: Union[np.ndarray, Sequence[np.ndarray]],
-        sparams: Optional[Sequence[int]] = None,
+        dt: Union[str, datetime.datetime, Sequence[str], Sequence[datetime.datetime]], 
+        pos: Union[np.ndarray, Sequence[np.ndarray]], 
+        sparams: Optional[Sequence[int]] = None
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        
-         """
+        """
         Handles the distributions for each initial parameter and generates quaternions
 
         Arguments:
