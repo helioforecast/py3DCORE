@@ -9,7 +9,7 @@ sns.set_context('paper')
 
 import datetime as datetime
 from datetime import timedelta
-import py3dcore
+import py3dcore as py3dcore
 from py3dcore.methods.method import BaseMethod
 
 import heliosat
@@ -110,7 +110,21 @@ def generate_ensemble(path: str, dt: datetime.datetime, reference_frame: str="HC
 def get_params(filepath, give_mineps=False):
     
     """ Gets params from file. """
+    ######### get parameters (mean +/- std)
     
+    fit_res = py3dcore.ABC_SMC(filepath)
+    fit_res_mean = np.mean(fit_res.model_obj.iparams_arr, axis=0)
+    fit_res_std = np.std(fit_res.model_obj.iparams_arr, axis=0)
+
+    keys = list(fit_res.model_obj.iparams.keys()) # names of the parameters 
+
+    print("Results :\n")
+    for i in range(1, len(keys)):
+        print("\t{}: \t\t{:.02f} +/- {:.02f}".format(keys[i], fit_res_mean[i], fit_res_std[i]))
+     
+    #########
+    
+    ######### get parameters for run with min(eps)
     # read from pickle file
     file = open(filepath, "rb")
     data = p.load(file)
@@ -128,15 +142,14 @@ def get_params(filepath, give_mineps=False):
     iparams_arrt = model_objt.iparams_arr
     
     resparams = iparams_arrt[ip] # parameters with run for minimum eps
-    
-    names = ['lon: ', 'lat: ', 'inc: ', 'diameter 1 AU: ', 'aspect ratio: ', 'launch radius: ', 'launch speed: ', 't factor: ', 'expansion rate: ', 'magnetic field decay rate: ', 'magnetic field 1 AU: ', 'drag coefficient: ', 'background sw speed: ']
+
     if give_mineps == True:
         logger.info("Retrieved the following parameters for the run with minimum epsilon:")
     
-        for count, name in enumerate(names):
-            logger.info(" --{} {:.2f}".format(name, resparams[count+1]))
+        for i in range(1, len(keys)):
+            logger.info(" --{} {:.2f}".format(keys[i], resparams[i]))
 
-    return resparams, iparams_arrt, ip
+    return resparams, fit_res_mean, fit_res_std, ip, keys
 
 
 def get_overwrite(out):
@@ -580,7 +593,7 @@ def full3d_multiview(t_launch, filepath):
     Plots 3d from multiple views.
     """
     
-    TP_A =  t_launch + datetime.timedelta(hours=5)
+    TP_A =  t_launch + datetime.timedelta(hours=4.25)
     TP_B =  t_launch + datetime.timedelta(hours=46)
 
     C_A = "xkcd:red"
@@ -659,6 +672,7 @@ def plot_3dcore(ax, obj, t_snap, light_source=False, **kwargs):
 
     obj.propagator(t_snap)
     wf_model = obj.visualize_shape(0, )  #visualize_wireframe(index=0)
+    print(*wf_model.T)
     #wf_model = obj.visualize_shape(iparam_index=2)  
     #ax.plot_wireframe(*wf_model.T, **kwargs)
     ax.plot_wireframe(*wf_model.T, **kwargs)
