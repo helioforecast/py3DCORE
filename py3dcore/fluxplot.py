@@ -152,9 +152,13 @@ def get_params(filepath, give_mineps=False):
     return resparams, fit_res_mean, fit_res_std, ip, keys
 
 
-def get_overwrite(out):
+def get_overwrite(out, heeq=True):
     
-    """ creates iparams from run with min(eps)"""
+    """ creates iparams from run with specific output"""
+    
+    if heeq==True:
+        out[1] = out[1] - 65.1  # hard coded PSP position in HEEQ, to be added to RTN outcome of 3DCORE fit
+        out[2] = out[2] - 3.6
     
     overwrite = {
         "cme_longitude": {
@@ -183,8 +187,8 @@ def get_overwrite(out):
                 "minimum": out[6] - 0.1
             },
         "cme_launch_velocity": {
-                "maximum": out[7] + 1,
-                "minimum": out[7] - 1
+                "maximum": out[7] + 200 + 1,
+                "minimum": out[7] + 200 - 1
             },
         "t_factor": {
                 "maximum": out[8] + 1,
@@ -419,7 +423,7 @@ def fullinsitu(observer, t_fit=None, start=None, end=None, filepath=None, ref_fr
     
 def returnfixedmodel(filepath):
     
-    '''returns a fixed model not generating random iparams'''
+    '''returns a fixed model not generating random iparams, but using the parameters of the run with min(eps)'''
     
     ftobj = BaseMethod(filepath) # load Fitter from path
     model_obj = ftobj.model_obj
@@ -427,8 +431,8 @@ def returnfixedmodel(filepath):
     model_obj.ensemble_size = 1
     
     logger.info("Using parameters for run with minimum eps.")
-    res, allres, ind = get_params(filepath)
-    model_obj.iparams_arr = np.expand_dims(res, axis=0)
+    res_mineps, res_mean, res_std, ind, keys = get_params(filepath)
+    model_obj.iparams_arr = np.expand_dims(res_mineps, axis=0)
     
     model_obj.sparams_arr = np.empty((model_obj.ensemble_size, model_obj.sparams), dtype=model_obj.dtype)
     model_obj.qs_sx = np.empty((model_obj.ensemble_size, 4), dtype=model_obj.dtype)
@@ -444,12 +448,12 @@ def returnfixedmodel(filepath):
 
 def returnmodel(filepath):
     
-    ''' returns a model using the parameters of the run with min(eps) from a previous result'''
+    '''returns a model using the parameters of the run with min(eps) from a previous result'''
     
     t_launch = BaseMethod(filepath).dt_0
     
-    res_mineps, allres, ind = get_params(filepath)
-    overwrite = get_overwrite(res_mineps)
+    res_mineps, res_mean, res_std, ind, keys = get_params(filepath)
+    overwrite = get_overwrite(res_mineps, heeq=True)
     print(overwrite)
     
     model_obj = py3dcore.ToroidalModel(t_launch, 1, iparams=overwrite)
@@ -460,10 +464,13 @@ def returnmodel(filepath):
 
 
 def full3d(spacecraftlist=['solo', 'psp'], planetlist=['Earth'], t=None, traj=50, filepath=None, save_fig=True, legend=True, 
-           title=True, view_azim=0, view_elev=45, view_radius=0.2, **kwargs):
+           title=True, view_azim=0, view_elev=45, view_radius=0.2, index=0, **kwargs):
     
     """
     Plots 3d.
+    
+    Parameters:
+        index        the index of the run with parameters with min(eps)
     """
     
     #colors for 3dplots
@@ -501,7 +508,7 @@ def full3d(spacecraftlist=['solo', 'psp'], planetlist=['Earth'], t=None, traj=50
     
     model_obj = returnmodel(filepath)
     
-    plot_3dcore(ax, model_obj, t, color=c2)
+    plot_3dcore(ax, model_obj, t, index=index, color=c2)
     #plot_3dcore_field(ax, model_obj, color=c2, step_size=0.005, lw=1.1, ls="-")
     
     if 'solo' in spacecraftlist:
@@ -565,9 +572,8 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
 
     if traj_pos:
         print('t_snap:', t_snap)
-        pos = inst.trajectory(t_snap, reference_frame="SPP_RTN")
+        pos = inst.trajectory(t_snap, reference_frame="HEEQ")
         print('pos [HEEQ - xyz]:', pos)
-        print('pos:')
 
         ax.scatter(*pos.T, s=_s, **kwargs)
         
@@ -587,14 +593,17 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
     # ax.plot(*traj.T, ls=_ls, lw=_lw, **kwargs)
 
 
-def full3d_multiview(t_launch, filepath):
+def full3d_multiview(tsnap, filepath):
     
     """
     Plots 3d from multiple views.
+    
+    Parameters
+        tsnaps       times for spacecrafts
     """
     
-    TP_A =  t_launch + datetime.timedelta(hours=4.25)
-    TP_B =  t_launch + datetime.timedelta(hours=46)
+    TP_A =  tsnap
+    TP_B =  tsnap + datetime.timedelta(hours=41)
 
     C_A = "xkcd:red"
     C_B = "xkcd:blue"
@@ -634,7 +643,7 @@ def full3d_multiview(t_launch, filepath):
     
     
     ########### top view panel
-    plot_configure(ax2, view_azim=165-90, view_elev=90, view_radius=.08,light_source=True)
+    plot_configure(ax2, view_azim=165-90, view_elev=90, view_radius=.08, light_source=True)
     
     plot_3dcore(ax2, model_obj, TP_A, color=C_A, light_source=True)
     #plot_3dcore_field(ax2, model_obj, color=C_A, step_size=0.0005, lw=1.0, ls="-")
@@ -660,7 +669,7 @@ def full3d_multiview(t_launch, filepath):
     plt.savefig(filepath[:-7] + 'multiview.pdf', bbox_inches='tight')
     
     
-def plot_3dcore(ax, obj, t_snap, light_source=False, **kwargs):
+def plot_3dcore(ax, obj, t_snap, index=0, light_source=False, **kwargs):
     kwargs["alpha"] = kwargs.pop("alpha", .05)
     kwargs["color"] = kwargs.pop("color", "k")
     kwargs["lw"] = kwargs.pop("lw", 1)
@@ -671,8 +680,7 @@ def plot_3dcore(ax, obj, t_snap, light_source=False, **kwargs):
     #ax.plot_surface(x, y, z, rstride=1, cstride=1, color='yellow', linewidth=0, antialiased=False)
 
     obj.propagator(t_snap)
-    wf_model = obj.visualize_shape(0, )  #visualize_wireframe(index=0)
-    print(*wf_model.T)
+    wf_model = obj.visualize_shape(iparam_index=index)  
     #wf_model = obj.visualize_shape(iparam_index=2)  
     #ax.plot_wireframe(*wf_model.T, **kwargs)
     ax.plot_wireframe(*wf_model.T, **kwargs)
