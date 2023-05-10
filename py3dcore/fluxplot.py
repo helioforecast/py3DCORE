@@ -149,7 +149,7 @@ def get_params(filepath, give_mineps=False):
         for i in range(1, len(keys)):
             logger.info(" --{} {:.2f}".format(keys[i], resparams[i]))
 
-    return resparams, fit_res_mean, fit_res_std, ip, keys
+    return resparams, fit_res_mean, fit_res_std, ip, keys, iparams_arrt
 
 
 def get_overwrite(out, heeq=True):
@@ -240,7 +240,7 @@ def scatterparams(path):
     
     ''' returns scatterplots from a results file'''
     
-    res, iparams_arrt, ind = get_params(path)
+    res, res_mean, res_std, ind, keys, iparams_arrt = get_params(path)
     
     df = pds.DataFrame(iparams_arrt)
     cols = df.columns.values.tolist()
@@ -431,7 +431,7 @@ def returnfixedmodel(filepath):
     model_obj.ensemble_size = 1
     
     logger.info("Using parameters for run with minimum eps.")
-    res_mineps, res_mean, res_std, ind, keys = get_params(filepath)
+    res_mineps, res_mean, res_std, ind, keys, allres = get_params(filepath)
     model_obj.iparams_arr = np.expand_dims(res_mineps, axis=0)
     
     model_obj.sparams_arr = np.empty((model_obj.ensemble_size, model_obj.sparams), dtype=model_obj.dtype)
@@ -452,7 +452,7 @@ def returnmodel(filepath):
     
     t_launch = BaseMethod(filepath).dt_0
     
-    res_mineps, res_mean, res_std, ind, keys = get_params(filepath)
+    res_mineps, res_mean, res_std, ind, keys, allres = get_params(filepath)
     overwrite = get_overwrite(res_mineps, heeq=True)
     print(overwrite)
     
