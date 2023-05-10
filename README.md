@@ -23,7 +23,7 @@ or the original version from https://github.com/ajefweiss/py3DCORE.
 
 In order for HelioSat to work properly, the following steps are necessary:
 
-1. manually create the folder .heliosat 
+1. manually create the folder ~/.heliosat 
 2. within .heliosat, manually create the following three folders
     - cache
     - data
