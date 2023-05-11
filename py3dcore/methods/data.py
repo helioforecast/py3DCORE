@@ -17,6 +17,9 @@ from datetime import timedelta
 from sunpy.coordinates import frames, get_horizons_coord
 from sunpy.time import parse_time
 
+from .functions_noaa import *
+from .coord_transforms import *
+
 import cdflib
 import pickle
 
@@ -162,14 +165,30 @@ class FittingData(object):
 
                 observer_obj = getattr(heliosat, observer)()
 
-                _, data = observer_obj.get(
-                    [dt_s, dt_e],
-                    "mag",
-                    reference_frame=self.reference_frame,
-                    sampling_freq=sampling_freq,
-                    cached=True,
-                    as_endpoints=True,
-                )
+                try:
+                    _, data = observer_obj.get(
+                        [dt_s, dt_e],
+                        "mag",
+                        reference_frame=self.reference_frame,
+                        sampling_freq=sampling_freq,
+                        cached=True,
+                        as_endpoints=True,
+                    )
+                except:
+                    if observer == "DSCOVR":
+                        logger.info("Collecting realtime data...")
+                        observer_obj = custom_observer('realtime')
+                        
+                        _, data = observer_obj.get(
+                        [dt_s, dt_e],
+                        "mag",
+                        reference_frame=self.reference_frame,
+                        sampling_freq=sampling_freq,
+                        cached=True,
+                        as_endpoints=True,
+                    )
+                    else:
+                        raise IndexError('Data not available!') 
 
                 data[np.isnan(data)] = 0 #set all nan values to 0
 
@@ -484,17 +503,21 @@ class custom_observer(object):
         """
     
     def __init__(self, data_path:str, **kwargs: Any) -> None:
-        
-        try:
-            file = pickle.load(open('py3dcore/custom_data/'+ data_path, 'rb'))
+        if data_path == 'realtime':
+            file = loadrealtime()
             self.data = file
-            #self.sphere2cart()
-        except:
-            logger.info("Did not find %s, creating pickle file from cdf", data_path)
-            #try:
-            createpicklefiles(self,data_path)
-            file = pickle.load(open('py3dcore/custom_data/'+ data_path, 'rb'))
-            self.data = file
+        else:
+            
+            try:
+                file = pickle.load(open('py3dcore/custom_data/'+ data_path, 'rb'))
+                self.data = file
+                #self.sphere2cart()
+            except:
+                logger.info("Did not find %s, creating pickle file from cdf", data_path)
+                #try:
+                createpicklefiles(self,data_path)
+                file = pickle.load(open('py3dcore/custom_data/'+ data_path, 'rb'))
+                self.data = file
         
         
     def sphere2cart(self):
@@ -537,6 +560,21 @@ class custom_observer(object):
             tra.append(res)
             
         return np.array(tra)
+    
+def loadrealtime():
+    
+    now = datetime.datetime.now()
+    nowstr = now.strftime("%Y%m%d_%H%M")
+
+    filename= 'dscvr_realtime_'+nowstr+'.p'
+    
+    
+
+    logger.info("Created pickle file from realtime data: %s", filename)
+    pickle.dump(file, open('py3dcore/custom_data/' + filename, "wb"))
+    
+    
+    return file
     
 def cdftopickle(magpath, swapath, sc):
     

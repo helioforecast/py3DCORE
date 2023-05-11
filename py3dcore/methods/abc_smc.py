@@ -103,6 +103,10 @@ class ABC_SMC(BaseMethod):
         eps_quantile = kwargs.pop("eps_quantile", 0.25) # which quantile to use for the new eps
         kernel_mode = kwargs.pop("kernel_mode", "cm") # kernel mode for perturbing the iparams - covariance matrix
         output = kwargs.get("output", None) # If output is set, results are saved to a file
+        
+        if output is not None:
+            output = "output/" + output
+        
         random_seed = kwargs.pop("random_seed", 42) # set random seed to ensure reproducible results
         summary_type = kwargs.pop("summary_statistic", "norm_rmse") # summary statistic used to measure the error of a fit
         time_offsets = kwargs.pop("time_offsets", [0]) # value used to correct arrival times at observers
