@@ -16,8 +16,7 @@ from datetime import timedelta
 from sunpy.coordinates import frames, get_horizons_coord
 from sunpy.time import parse_time
 
-from .functions_noaa import *
-from .coord_transforms import *
+
 from .preprocess import *
 
 import cdflib
@@ -257,16 +256,31 @@ class FittingData(object):
 
             observer_obj = getattr(heliosat, observer)()
             
+            try:
+                    _, data = observer_obj.get(
+                        dt,
+                        instrument,
+                        reference_frame=self.reference_frame,
+                        cached=True,
+                        **kwargs
+                    )
+            except:
+                if observer == "DSCOVR":
+                    logger.info("Collecting realtime data...")
+                    observer_obj = custom_observer('realtime')
+
+                    _, data = observer_obj.get(
+                        dt, 
+                        "mag", 
+                        reference_frame=self.reference_frame, 
+                        cached=True, 
+                        **kwargs)
+                else:
+                    raise IndexError('Data not available!')             
+            
             # The according magnetic field data 
             # for the fitting points is obtained
 
-            _, data = observer_obj.get(
-                dt,
-                instrument,
-                reference_frame=self.reference_frame,
-                cached=True,
-                **kwargs
-            )
             # dt are fitting points, dt_all is with start and end time
             dt_all = [dt_s] + dt + [dt_e] # all time points
             #print(data)
@@ -560,21 +574,7 @@ class custom_observer(object):
             tra.append(res)
             
         return np.array(tra)
-    
-def loadrealtime():
-    
-    now = datetime.datetime.now()
-    nowstr = now.strftime("%Y%m%d_%H%M")
 
-    filename= 'dscvr_realtime_'+nowstr+'.p'
-    
-    
-
-    logger.info("Created pickle file from realtime data: %s", filename)
-    pickle.dump(file, open('py3dcore/custom_data/' + filename, "wb"))
-    
-    
-    return file
     
 
         
