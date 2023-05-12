@@ -19,7 +19,7 @@ import numpy as np
 from heliosat.util import sanitize_dt
 
 from ..model import SimulationBlackBox, set_random_seed
-from .data import FittingData, CustomData
+from .data import FittingData
 from .method import BaseMethod
 
 
@@ -114,17 +114,12 @@ class ABC_SMC(BaseMethod):
         workers = kwargs.pop("workers", multiprocessing.cpu_count()-1) # number of workers 
         jobs = kwargs.pop("jobs", workers) # number of jobs
         use_multiprocessing = kwargs.pop("use_multiprocessing", False) # Whether to use multiprocessing 
-        custom_data = kwargs.pop("custom_data", False) # Whether to use custom data
 
         mpool = multiprocessing.Pool(processes=workers) # initialize Pool for multiprocessing
         
         # Fitting data comes from the module fitter.base.py 
         
-        if custom_data == False:
-            data_obj = FittingData(self.observers, reference_frame) 
-            logger.info("Using HelioSat to retrieve data")
-        else:
-            data_obj = CustomData(self.observers, reference_frame)
+        data_obj = FittingData(self.observers, reference_frame) 
             
         data_obj.generate_noise(
             kwargs.get("noise_model", "psd"),

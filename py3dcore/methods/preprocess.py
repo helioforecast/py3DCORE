@@ -30,31 +30,7 @@ import pandas as pds
 logger = logging.getLogger(__name__)
 
     
-def loadrealtime():
-    
-    now = datetime.datetime.now()
-    nowstr = now.strftime("%Y%m%d_%H%M")
 
-    filename= 'dscvr_realtime_'+nowstr+'.p'
-    
-    request_mag=urllib.request.urlopen('https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json')
-    file_mag = request_mag.read()
-    data_mag = json.loads(file_mag)
-    noaa_mag_gsm = pds.DataFrame(data_mag[1:], columns=['timestamp', 'b_x', 'b_y', 'b_z', 'lon_gsm', 'lat_gsm', 'b_tot'])
-
-    noaa_mag_gsm['timestamp'] = pds.to_datetime(noaa_mag_gsm['timestamp'])
-    noaa_mag_gsm['b_x'] = noaa_mag_gsm['b_x'].astype('float')
-    noaa_mag_gsm['b_y'] = noaa_mag_gsm['b_y'].astype('float')
-    noaa_mag_gsm['b_z'] = noaa_mag_gsm['b_z'].astype('float')
-    noaa_mag_gsm['b_tot'] = noaa_mag_gsm['b_tot'].astype('float')
-    print(noaa_mag_gsm)
-
-    logger.info("Created pickle file from realtime data: %s", filename)
-    pickle.dump(noaa_mag_gsm, open('py3dcore/custom_data/' + filename, "wb"))
-    
-    raise NotImplementedError('ATTENTION: Still need to finish dscvr data import! So far only mag field components are loaded and no information about positions exists!')
-    
-    return noaa_mag_gsm
 
 def cdftopickle(magpath, swapath, sc):
     
