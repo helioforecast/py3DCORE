@@ -16,15 +16,15 @@ Install the latest version of HelioSat manually using `git`:
     cd HelioSat
     pip install -e .
     
-Install all necessary packages:
-    
-    pip install -r requirements.txt
-
 Install the latest version manually using `git`:
 
     git clone https://github.com/helioforecast/py3DCORE
     cd py3DCORE
     pip install -e .
+    
+Install all necessary packages:
+    
+    pip install -r requirements.txt
     
 
 or the original version from https://github.com/ajefweiss/py3DCORE.
