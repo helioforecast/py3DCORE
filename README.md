@@ -5,12 +5,27 @@ Python implementations of the class of models running under the name of "3D Coro
 
 ## Installation
 ------------
+First install new conda environment:
+
+    conda create -n "3dcorenv" python=3.10.10
+    conda activate 3dcorenv
+    
+Install the latest version of HelioSat manually using `git`:
+
+    git clone https://github.com/ajefweiss/HelioSat
+    cd HelioSat
+    pip install -e .
+    
+Install all necessary packages:
+    
+    pip install -r requirements.txt
 
 Install the latest version manually using `git`:
 
     git clone https://github.com/helioforecast/py3DCORE
     cd py3DCORE
-    pip install .
+    pip install -e .
+    
 
 or the original version from https://github.com/ajefweiss/py3DCORE.
 
