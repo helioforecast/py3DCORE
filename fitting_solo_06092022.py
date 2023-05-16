@@ -102,7 +102,7 @@ if __name__ == "__main__":
     }
     
     
-    output = 'output/solo06092022_512_soloRTN/'
+    output = 'output/solo06092022_512_soloRTN_test/'
     
 
     # Deleting a non-empty folder
@@ -117,5 +117,5 @@ if __name__ == "__main__":
     fitter.initialize(t_launch, py3dcore.ToroidalModel, model_kwargs)
     fitter.add_observer("SOLO", t_fit, t_s, t_e)#, custom_data='solo_2022sep.p')
 
-    fitter.run(10, ensemble_size=512, reference_frame="SOLO_SUN_RTN", jobs=6, workers=6, sampling_freq=3600, output=output, noise_model="psd")
+    fitter.run(ensemble_size=512, reference_frame="SOLO_SUN_RTN", jobs=6, workers=6, sampling_freq=3600, output=output, noise_model="psd", use_multiprocessing=True)
 
