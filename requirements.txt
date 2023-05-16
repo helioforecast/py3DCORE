@@ -23,4 +23,5 @@ numpy==1.23.5
 pandas==1.5.3
 spacepy==0.4.1
 spiceypy==5.1.2
+sunpy==4.1.4
 tqdm==4.65.0

@@ -246,13 +246,13 @@ def createpicklefiles(self, data_path):
     sc = name.split('_')[0]
     ev = name.split('_')[1]
 
-    magpath = 'py3dcore/custom_data/' + sc +'_mag_'+ ev
-    swapath = 'py3dcore/custom_data/' + sc +'_swa_'+ ev
+    magpath = 'src/py3dcore/custom_data/' + sc +'_mag_'+ ev
+    swapath = 'src/py3dcore/custom_data/' + sc +'_swa_'+ ev
 
     ll = cdftopickle(magpath, swapath, sc)
 
     filename= sc +'_'+ ev + '.p'
 
-    pickle.dump(ll, open('py3dcore/custom_data/' + filename, "wb"))
+    pickle.dump(ll, open('src/py3dcore/custom_data/' + filename, "wb"))
     logger.info("Created pickle file from cdf: %s", filename)
                 

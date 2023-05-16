@@ -8,7 +8,7 @@ import logging as logging
 import datetime as datetime
 import numpy as np
 import os as os
-import py3dcore_h4c as py3dcore_h4c
+import py3dcore
 import shutil as shutil
 
 from heliosat.util import sanitize_dt
@@ -110,8 +110,8 @@ if __name__ == "__main__":
         pass
 
 
-    fitter = py3dcore_h4c.ABC_SMC()
-    fitter.initialize(t_launch, py3dcore_h4c.ToroidalModel, model_kwargs)
+    fitter = py3dcore.ABC_SMC()
+    fitter.initialize(t_launch, py3dcore.ToroidalModel, model_kwargs)
     fitter.add_observer("wind", t_fit, t_s, t_e, custom_data='wind_2012may.p')
 
     fitter.run(ensemble_size=1024, reference_frame="HEEQ", jobs=5, workers=5, sampling_freq=3600, output=output, 

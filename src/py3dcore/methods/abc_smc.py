@@ -22,6 +22,8 @@ from ..model import SimulationBlackBox, set_random_seed
 from .data import FittingData
 from .method import BaseMethod
 
+def starmap(func, args):
+    return [func(*_) for _ in args]
 
 class ABC_SMC(BaseMethod):
     

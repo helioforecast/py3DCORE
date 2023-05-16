@@ -1,4 +1,30 @@
+# -*- coding: utf-8 -*-
 
+from typing import Any, List, Optional, Sequence, Tuple, Union
+
+import heliosat
+import numba
+import numpy as np
+import os
+from scipy.signal import detrend, welch
+######
+import matplotlib.dates as mdates
+from matplotlib.dates import  DateFormatter
+import datetime
+from datetime import timedelta
+
+from sunpy.coordinates import frames, get_horizons_coord
+from sunpy.time import parse_time
+
+
+from .preprocess import *
+
+import cdflib
+import pickle
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 ############## CUSTOM DATA
@@ -23,14 +49,14 @@ class custom_observer(object):
         else:
             
             try:
-                file = pickle.load(open('py3dcore/custom_data/'+ data_path, 'rb'))
+                file = pickle.load(open('src/py3dcore/custom_data/'+ data_path, 'rb'))
                 self.data = file
                 #self.sphere2cart()
             except:
                 logger.info("Did not find %s, creating pickle file from cdf", data_path)
                 #try:
                 createpicklefiles(self,data_path)
-                file = pickle.load(open('py3dcore/custom_data/'+ data_path, 'rb'))
+                file = pickle.load(open('src/py3dcore/custom_data/'+ data_path, 'rb'))
                 self.data = file
         
         
@@ -98,7 +124,7 @@ def loadrealtime():
     print(noaa_mag_gsm)
 
     logger.info("Created pickle file from realtime data: %s", filename)
-    pickle.dump(noaa_mag_gsm, open('py3dcore/custom_data/' + filename, "wb"))
+    pickle.dump(noaa_mag_gsm, open('src/py3dcore/custom_data/' + filename, "wb"))
     
     raise NotImplementedError('ATTENTION: Still need to finish dscvr data import! So far only mag field components are loaded and no information about positions exists!')
     

@@ -109,4 +109,4 @@ if __name__ == "__main__":
     fitter.initialize(t_launch, py3dcore.ToroidalModel, model_kwargs)
     fitter.add_observer("DSCOVR", t_fit, t_s, t_e)
 
-    fitter.run(12, ensemble_size=512, reference_frame="GSM", jobs=5, workers=5, sampling_freq=3600, output=output, noise_model="psd")
+    fitter.run(12, ensemble_size=512, reference_frame="HEEQ", jobs=5, workers=5, sampling_freq=3600, output=output, noise_model="psd")
