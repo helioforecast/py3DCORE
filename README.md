@@ -43,5 +43,6 @@ In order for HelioSat to work properly, the following steps are necessary:
     - cache
     - data
     - kernels
+3. if HelioSat fails to download kernels, download them manually and place them in the kernel folder
 
 In those folders, HelioSat will download and save the needed spacecraft data and corresponding kernels. 
