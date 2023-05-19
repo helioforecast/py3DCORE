@@ -34,14 +34,14 @@ or the original version from https://github.com/ajefweiss/py3DCORE.
 ## Notes on 3DCORE Results
 ------------
 
-3DCORE can work with several coordinate frames. Be careful to interpret results correctly
+3DCORE can work with several coordinate frames. Be careful to interpret results correctly.
 
 ------------
 
 ## Notes on HelioSat
 ------------
 
-3DCORE uses the package HelioSat (https://github.com/ajefweiss/HelioSat) to retrieve spacecraft data and other spacecraft related information (positions, trajectories, etc.). 
+3DCORE uses the package HelioSat (https://github.com/ajefweiss/HelioSat) to retrieve spacecraft data and other spacecraft related information (positions, trajectories, etc). 
 
 In order for HelioSat to work properly, the following steps are necessary:
 
