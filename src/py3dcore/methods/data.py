@@ -16,9 +16,7 @@ from datetime import timedelta
 from sunpy.coordinates import frames, get_horizons_coord
 from sunpy.time import parse_time
 
-
-from .preprocess import *
-from .customsat import custom_observer
+from .customsat import *
 
 import cdflib
 import pickle
@@ -161,41 +159,48 @@ class FittingData(object):
         if noise_model == "psd":
             # get data for each observer
             for o in range(self.length):
-                observer, dt, dt_s, dt_e, _, self.data_path = self.observers[o]
+                observer, dt, dt_s, dt_e, _, self.custom_data = self.observers[o]
 
                 # The observer object is created
             
-                if self.data_path == None:
-                    logger.info("Using HelioSat to retrieve data")
-                    observer_obj = getattr(heliosat, observer)()    
-                else:
-                    logger.info("Using custom datafile: %s", self.data_path)
-                    observer_obj = custom_observer(self.data_path)  
+                observer_obj = getattr(heliosat, observer)()    
+                
+                if self.custom_data == False:
                     
-                try:
-                    _, data = observer_obj.get(
-                        [dt_s, dt_e],
-                        "mag",
-                        reference_frame=self.reference_frame,
-                        sampling_freq=sampling_freq,
-                        cached=True,
-                        as_endpoints=True,
-                    )
-                except:
-                    if observer == "DSCOVR":
-                        logger.info("Collecting realtime data...")
-                        observer_obj = custom_observer('realtime')
-                        
+                    try:
                         _, data = observer_obj.get(
-                        [dt_s, dt_e],
-                        "mag",
-                        reference_frame=self.reference_frame,
-                        sampling_freq=sampling_freq,
-                        cached=True,
-                        as_endpoints=True,
-                    )
-                    else:
-                        raise IndexError('Data not available!') 
+                            [dt_s, dt_e],
+                            "mag",
+                            reference_frame=self.reference_frame,
+                            sampling_freq=sampling_freq,
+                            cached=True,
+                            as_endpoints=True,
+                        )
+                        logger.info("Using HelioSat to retrieve data")
+                    except:
+                        if observer == "DSCOVR":
+                            logger.info("Collecting realtime data...")
+                            
+                            _, data = getrealtime([dt_s, dt_e],
+                                                   reference_frame=self.reference_frame,
+                                                   as_endpoints=True
+                                                  )
+                        else:
+                            raise IndexError('Data not available!') 
+                else:
+                    try:
+                        logger.info("Using HelioSat with custom datafile!")
+                        _, data = observer_obj.get(
+                            [dt_s, dt_e],
+                            "mag",
+                            reference_frame=self.reference_frame,
+                            sampling_freq=sampling_freq,
+                            cached=True,
+                            as_endpoints=True,
+                            skip_download = True
+                        )
+                    except:
+                        raise IndexError('Data not available!')
 
                 data[np.isnan(data)] = 0 #set all nan values to 0
 
@@ -247,7 +252,7 @@ class FittingData(object):
             
             # The values of the observer are unpacked
             
-            observer, dt, dt_s, dt_e, dt_shift, self.data_path = self.observers[o]
+            observer, dt, dt_s, dt_e, dt_shift, self.custom_data = self.observers[o]
             
             # The reference points are corrected by time_offset
 
@@ -261,35 +266,39 @@ class FittingData(object):
                 dt_e += datetime.timedelta(hours=time_offset)
             
             # The observer object is created
+            observer_obj = getattr(heliosat, observer)() 
             
-            if self.data_path == None:
-                logger.info("Using HelioSat to retrieve data")
-                observer_obj = getattr(heliosat, observer)()    
+            if self.custom_data == False:
+                    
+                    try:
+                        _, data = observer_obj.get(
+                            dt,
+                            instrument,
+                            reference_frame=self.reference_frame,
+                            cached=True,
+                            **kwargs
+                        )
+                        logger.info("Using HelioSat to retrieve data")
+                    except:
+                        if observer == "DSCOVR":
+                            logger.info("Collecting realtime data...")
+                            _, data = getrealtime(dt, reference_frame=self.reference_frame, as_endpoints=False)
+                        else:
+                            raise IndexError('Data not available!')
             else:
-                logger.info("Using custom datafile: %s", self.data_path)
-                observer_obj = custom_observer(self.data_path)             
-             
-            try:
+                try:
+                    logger.info("Using HelioSat with custom datafile!")
                     _, data = observer_obj.get(
-                        dt,
-                        instrument,
-                        reference_frame=self.reference_frame,
-                        cached=True,
-                        **kwargs
-                    )
-            except:
-                if observer == "DSCOVR":
-                    logger.info("Collecting realtime data...")
-                    observer_obj = custom_observer('realtime')
-
-                    _, data = observer_obj.get(
-                        dt, 
-                        "mag", 
-                        reference_frame=self.reference_frame, 
-                        cached=True, 
-                        **kwargs)
-                else:
-                    raise IndexError('Data not available!')             
+                         dt,
+                         instrument,
+                         reference_frame=self.reference_frame,
+                         cached=True,
+                         skip_download = True,
+                         **kwargs
+                     )
+                except:
+                    raise IndexError('Data not available!')
+                          
             
             # The according magnetic field data 
             # for the fitting points is obtained
@@ -298,9 +307,15 @@ class FittingData(object):
             dt_all = [dt_s] + dt + [dt_e] # all time points
             #print(data)
 
-            trajectory = observer_obj.trajectory(
-                dt_all, reference_frame=self.reference_frame
-            ) # returns the spacecraft trajectory
+            try:
+                trajectory = observer_obj.trajectory(
+                    dt_all, reference_frame=self.reference_frame
+                )
+            except:
+                logger.info("No HelioSat position available!")
+                trajectory = getsunpyposition(dt_all,self.reference_frame, observer)
+                
+                # returns the spacecraft trajectory
             # an array containing the data plus one additional 
             # zero each at the beginning and the end is created
             

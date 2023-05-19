@@ -31,6 +31,13 @@ or the original version from https://github.com/ajefweiss/py3DCORE.
 
 ------------
 
+## Notes on 3DCORE Results
+------------
+
+3DCORE can work with several coordinate frames. Be careful to interpret results correctly
+
+------------
+
 ## Notes on HelioSat
 ------------
 
@@ -46,3 +53,4 @@ In order for HelioSat to work properly, the following steps are necessary:
 3. if HelioSat fails to download kernels, download them manually and place them in the kernel folder
 
 In those folders, HelioSat will download and save the needed spacecraft data and corresponding kernels. 
+If you want to use custom data not available online, place the datafile in .heliosat/data and set custom_data = True during fitting.
