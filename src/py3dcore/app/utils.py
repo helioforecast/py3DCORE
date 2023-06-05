@@ -4,8 +4,11 @@ import heliosat
 
 import streamlit as st
 
+import pickle as p
 import numpy as np
 import pandas as pds
+
+import os
 
 class Event:
     
@@ -37,7 +40,7 @@ def get_catevents(day):
     end = pds.to_datetime(endtime, format=dateFormat)
 
     
-    for i, event in enumerate(icmecat):
+    for i, event in enumerate(begin):
         if (begin[i].year == day.year and begin[i].month == day.month and begin[i].day == day.day):
             evtList.append(Event(mobegin[i], end[i], idd[i], sc[i]))
     if len(evtList) == 0:
@@ -45,6 +48,46 @@ def get_catevents(day):
     
     return evtList
 
+def get_fitobserver(mag_coord_system, sc):
+    
+    if mag_coord_system == 'HEEQ':
+        reference_frame = 'HEEQ'
+        
+    if sc == 'BepiColombo':
+        if mag_coord_system == 'RTN':
+            reference_frame = 'GSE'
+        observer = 'Bepi'
+    elif sc == 'DSCOVR':
+        if mag_coord_system == 'RTN':
+            reference_frame = 'GSE'
+        observer = 'DSCOVR'
+    elif sc == 'MESSENGER':
+        if mag_coord_system == 'RTN':
+            reference_frame = 'MSGR_RTN'
+        observer = 'Mes'
+    elif sc == 'PSP':
+        if mag_coord_system == 'RTN':
+            reference_frame = 'SPP_RTN'
+        observer = 'PSP'
+    elif sc == 'SolarOrbiter':
+        if mag_coord_system == 'RTN':
+            reference_frame = 'SOLO_SUN_RTN'
+        observer = 'SolO'
+    elif sc == 'STEREO-A':
+        if mag_coord_system == 'RTN':
+            reference_frame = 'STAHGRTN'
+        observer = 'STA'
+    elif sc == 'VEX-A':
+        if mag_coord_system == 'RTN':
+            reference_frame = 'VSO'
+        observer = 'VEX'
+    elif sc == 'Wind':
+        if mag_coord_system == 'RTN':
+            reference_frame = 'GSE'
+        observer = 'Wind'
+        
+    return observer, reference_frame
+    
 def get_insitudata(mag_coord_system, sc, insitubegin, insituend):
     
         
@@ -94,6 +137,28 @@ def get_insitudata(mag_coord_system, sc, insitubegin, insituend):
     dt = [datetime.datetime.utcfromtimestamp(ts) for ts in t]
     
     return b, dt
+
+
+def loadpickle(path=None, number=-1):
+
+    """ Loads the filepath of a pickle file. """
+    
+    path = 'output/' + path + '/'
+
+    # Get the list of all files in path
+    dir_list = sorted(os.listdir(path))
+
+    resfile = []
+    respath = []
+    # we only want the pickle-files
+    for file in dir_list:
+        if file.endswith(".pickle"):
+            resfile.append(file) 
+            respath.append(os.path.join(path,file))
+            
+    filepath = path + resfile[number]
+
+    return filepath
                 
 class defaulttimer:
     

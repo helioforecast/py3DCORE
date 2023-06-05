@@ -13,8 +13,8 @@
         "index": 1,
         "name": "longitude",
         "distribution": "uniform",
-        "maximum": 180,
-        "minimum": -180,
+        "maximum": 360,
+        "minimum": 0,
         "boundary": "periodic",
         "label": "lon"
     },
@@ -70,7 +70,7 @@
         "index": 7,
         "name": "velocity",
         "distribution": "uniform",
-        "maximum": 1000,
+        "maximum": 1200,
         "minimum": 400,
         "boundary": "continuous",
         "label": "v_0"
@@ -118,7 +118,7 @@
         "index": 12,
         "name": "background drag",
         "distribution": "uniform",
-        "maximum": 2,
+        "maximum": 3,
         "minimum": 0.2,
         "boundary": "continuous",
         "label": "\\gamma"
@@ -127,8 +127,8 @@
         "index": 13,
         "name": "background velocity",
         "distribution": "uniform",
-        "maximum": 450,
-        "minimum": 250,
+        "maximum": 700,
+        "minimum": 100,
         "boundary": "continuous",
         "label": "v_{sw}"
     }

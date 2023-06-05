@@ -10,7 +10,15 @@ from py3dcore.app.config import app_styles, selected_imagers #, config_sliders, 
 from py3dcore.app.modules import date_and_event_selection, fitting_and_slider_options_container, fitting_sliders, fitting_points #, final_parameters_gmodel, fitting_sliders, maps_clims
 from py3dcore.app.utils import get_insitudata
 from py3dcore.app.fitting import fitting_main
-from py3dcore.app.plotting import plot_insitu, plot_fittinglines, plot_catalog, plot_additionalinsitu
+from py3dcore.app.plotting import plot_insitu, plot_fittinglines, plot_catalog, plot_additionalinsitu, plot_fitting_results
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("heliosat.spice").setLevel("WARNING")
+logging.getLogger("heliosat.spacecraft").setLevel("WARNING")
+
+logger = logging.getLogger(__name__)
 
 def delete_from_state(vars):
     for var in vars:
@@ -19,7 +27,10 @@ def delete_from_state(vars):
 
 def footer_text():
     st.subheader('About this application:')
-    st.markdown("""
+    
+    right, left = st.columns((1, 1))
+    
+    right.markdown("""
                    _3DCOREweb_  is an open-source software package based on 3DCORE, that can be used to
                    reconstruct the 3D structure of Coronal Mass Ejections (CMEs) and create synthetic 
                    insitu signatures. It can be fitted to insitu data from several spacecraft using an
@@ -32,7 +43,6 @@ def footer_text():
                    such as the SOlar and Heliospheric Observatory (SOHO) and Solar Terrestrial Relations
                    Observatory (STEREO).
                 """)
-    right, left = st.columns((1, 1))
     right.markdown("""
                    **Github**: Find the latest version here
                                [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/helioforecast/py3DCORE) \n
@@ -50,7 +60,7 @@ def run():
     #############################################################
     # set page config
     st.set_page_config(page_title='py3DCORE', page_icon = ':satellite:', 
-                       initial_sidebar_state='expanded') 
+                       initial_sidebar_state='expanded', layout="wide") 
     
     # Possible other choices: # :rocket:, :sun:, :ringed_planet:, :star:, :telescope:, 
     
@@ -69,6 +79,8 @@ def run():
         
     #############################################################
     # Date and Event selection
+    
+    form_submitted = False
 
     if 'date_process' not in st.session_state:
         date_and_event_selection(st)
@@ -90,8 +102,8 @@ def run():
         footer_text()
         st.stop()
     else:
-        placeholder = st.empty()
-        placeholder.markdown(""" 
+        st.session_state.placeholder = st.empty()
+        st.session_state.placeholder.markdown(""" 
                    You have several options to analyze the chosen event: \n
                    **View 3D Positions:** \n
                    >_Take a look at planet and spacecraft positions and model the 3D shape of the CME._ \n
@@ -178,20 +190,19 @@ def run():
             st.checkbox('View Fitting Results', value=False, key='view_fitting_results')
             st.checkbox('View Synthetic Insitu Data', value=False, key='view_synthetic_insitu')
             
-        fitting_points(st)
             
         ## insitu plots
         
         st.markdown('### Insitu Data')
-        insitucontainer = placeholder.container()
+        insitucontainer = st.session_state.placeholder.container()
         
-        insitucontainer.info("⏳ Downloading Insitu Data...")
         if 'b_data' not in st.session_state:
+            insitucontainer.info("⏳ Downloading Insitu Data...")
             try:
                 st.session_state.b_data, st.session_state.t_data = get_insitudata(st.session_state.mag_coord_system, st.session_state.event_selected.sc, st.session_state.insitubegin, st.session_state.insituend)
-                insitucontainer.success("✅ Successfully downloaded " + st.session_state.event_selected.sc + " Insitu Data")
+                st.session_state.placeholder.success("✅ Successfully downloaded " + st.session_state.event_selected.sc + " Insitu Data")
             except:
-                insitucontainer.info("❌ Failed to download " + st.session_state.event_selected.sc + " Insitu Data - Try downloading kernel manually or adding custom file in HelioSat Folder!")
+                st.session_state.placeholder.info("❌ Failed to download " + st.session_state.event_selected.sc + " Insitu Data - Try downloading kernel manually or adding custom file in HelioSat Folder!")
                 
                 
         st.session_state.insituplot = plot_insitu(st)
@@ -222,7 +233,10 @@ def run():
     #############################################################
     # Fitting Results
     
+    fitting_points(st)
+    
     if st.session_state.fitting_results:
+        st.markdown('### Fitting')
         if 'model_fittings' in st.session_state:
             plot_fitting_results(st)
         else:

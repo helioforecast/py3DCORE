@@ -3,6 +3,10 @@ import datetime
 import numpy as np
 import pandas as pds
 
+import pickle as p
+
+import streamlit as st
+
 import astropy.units as u
 
 from py3dcore.app.utils import get_catevents, defaulttimer #, model_fittings
@@ -20,7 +24,7 @@ def date_and_event_selection(st):
     
     if initialisation == 'Catalog':
         day = st.sidebar.date_input('Select a day to process',
-                          value=datetime.datetime(2023, 1, 17, 0, 0, 0),
+                          value=datetime.datetime(2022, 6, 22, 0, 0, 0),
                           min_value=datetime.datetime(2010, 1, 1, 0, 0, 0),
                           max_value=datetime.date.today())
         evtlist = get_catevents(day)
@@ -32,6 +36,24 @@ def date_and_event_selection(st):
             st.experimental_rerun()
         elif event_selected == 'No events returned':
             st.sidebar.warning('Initiate manually')
+    
+    if initialisation == 'File':
+        session_state_file = st.sidebar.file_uploader("Upload a session state file", type=["pickle","pkl","p"])
+
+        if session_state_file is not None:
+            try:
+                # Load the session state from the uploaded file
+                session_state = p.load(session_state_file)
+
+                # Update the session state variables
+                for key, value in session_state.items():
+                    st.session_state[key] = value
+
+                st.success("✅ Session State loaded successfully!")
+            except pickle.UnpicklingError:
+                st.error("Invalid session state file. Please upload a valid pickle file.")
+
+
 
 def fitting_and_slider_options_container(st):
     container = st.sidebar.container()
@@ -48,6 +70,10 @@ def fitting_and_slider_options_container(st):
         st.checkbox('View Remote Imaging', value=False, key='remote_imaging')
         st.checkbox('View Fitting Results', value=False, key='fitting_results')
         
+        # Create the save button
+        if st.button("Save Session State"):
+            save_session_state()
+    
         #st.experimental_rerun()
         
 def fitting_sliders(st):
@@ -119,26 +145,48 @@ def double_fitting_sliders(st):
                                                max_value=90.,
                                                value=[-90.,90.],
                                                step=0.01, key='latitu_double') * u.degree
-        
+        fixedsliders = ['Launch Radius','Expansion Rate', 'Magnetic Decay Rate']
         sliders = options[gmodel][rmode]
         for slider in sliders:
-            range_container.slider(f'{slider} {sd[gmodel][slider]["unit"]}:',
-                                   min_value=sd[gmodel][slider][adjustments]['min'],
-                                   max_value=sd[gmodel][slider][adjustments]['max'],
-                                   value=[sd[gmodel][slider][adjustments]['min'],sd[gmodel][slider][adjustments]['max']],
-                                   step=sd[gmodel][slider][adjustments]['step'], key=sd[gmodel][slider]["variablename_double"])
+            if slider in fixedsliders:
+                range_container.slider(f'{slider} {sd[gmodel][slider]["unit"]}:',
+                                       min_value=sd[gmodel][slider][adjustments]['min'],
+                                       max_value=sd[gmodel][slider][adjustments]['max'],
+                                       value=[sd[gmodel][slider][adjustments]['def'],sd[gmodel][slider][adjustments]['def']],
+                                       step=sd[gmodel][slider][adjustments]['step'], key=sd[gmodel][slider]["variablename_double"])
+                
+            else:
+                range_container.slider(f'{slider} {sd[gmodel][slider]["unit"]}:',
+                                       min_value=sd[gmodel][slider][adjustments]['min'],
+                                       max_value=sd[gmodel][slider][adjustments]['max'],
+                                       value=[sd[gmodel][slider][adjustments]['min'],sd[gmodel][slider][adjustments]['max']],
+                                       step=sd[gmodel][slider][adjustments]['step'], key=sd[gmodel][slider]["variablename_double"])
+                
+                
         for slider in magoptions:
-            range_container.slider(f'{slider} {msd[gmodel][slider]["unit"]}:',
-                                   min_value=msd[gmodel][slider][adjustments]['min'],
-                                   max_value=msd[gmodel][slider][adjustments]['max'],
-                                   value=[msd[gmodel][slider][adjustments]['min'],msd[gmodel][slider][adjustments]['max']],
-                                   step=msd[gmodel][slider][adjustments]['step'], key=msd[gmodel][slider]["variablename_double"])
+            if slider in fixedsliders:
+                range_container.slider(f'{slider} {msd[gmodel][slider]["unit"]}:',
+                                       min_value=msd[gmodel][slider][adjustments]['min'],
+                                       max_value=msd[gmodel][slider][adjustments]['max'],
+                                       value=[msd[gmodel][slider][adjustments]['def'],msd[gmodel][slider][adjustments]['def']],
+                                       step=msd[gmodel][slider][adjustments]['step'], key=msd[gmodel][slider]["variablename_double"])
+                
+                
+            else:                
+                range_container.slider(f'{slider} {msd[gmodel][slider]["unit"]}:',
+                                       min_value=msd[gmodel][slider][adjustments]['min'],
+                                       max_value=msd[gmodel][slider][adjustments]['max'],
+                                       value=[msd[gmodel][slider][adjustments]['min'],msd[gmodel][slider][adjustments]['max']],
+                                       step=msd[gmodel][slider][adjustments]['step'], key=msd[gmodel][slider]["variablename_double"])
         
         
             
 def fitting_points(st):
     
     with st.sidebar.expander('Fitting'):
+        
+        st.session_state.fitting_datetimes = []
+        
         st.info('Select the launch time for your event. You might want to check remote images to make an educated guess.')
         col1, col2 = st.columns(2)
         t_launch_date = col1.date_input('Launch Time:',
@@ -149,6 +197,8 @@ def fitting_points(st):
                                    value = defaulttimer(st,-72).timeA,
                                    step = 1800,
                                    label_visibility = 'hidden')
+        st.session_state.dt_launch = datetime.datetime.combine(t_launch_date, t_launch_time)
+        
         st.info('Select two reference points outside of the fluxrope (A before, B after). These are used to determine whether the CME hits.')
         col1, col2 = st.columns(2)
         t_s_date = col1.date_input('Reference A:',
@@ -187,6 +237,7 @@ def fitting_points(st):
                                         step = 1800,
                                         label_visibility = 'hidden')
             st.session_state.dt_1 = datetime.datetime.combine(t_1_date, t_1_time)
+            st.session_state.fitting_datetimes.append(st.session_state.dt_1)
 
             st.checkbox('t_2', value=False, key='t_2')
             if st.session_state.t_2:
@@ -200,6 +251,7 @@ def fitting_points(st):
                                             step = 1800,
                                             label_visibility = 'hidden')
                 st.session_state.dt_2 = datetime.datetime.combine(t_2_date, t_2_time)
+                st.session_state.fitting_datetimes.append(st.session_state.dt_2)
 
                 st.checkbox('t_3', value=False, key='t_3')
                 if st.session_state.t_3:
@@ -213,6 +265,7 @@ def fitting_points(st):
                                                 step = 1800,
                                                 label_visibility = 'hidden')
                     st.session_state.dt_3 = datetime.datetime.combine(t_3_date, t_3_time)
+                    st.session_state.fitting_datetimes.append(st.session_state.dt_3)
 
                     st.checkbox('t_4', value=False, key='t_4')
                     if st.session_state.t_4:
@@ -226,6 +279,7 @@ def fitting_points(st):
                                                     step = 1800,
                                                     label_visibility = 'hidden')
                         st.session_state.dt_4 = datetime.datetime.combine(t_4_date, t_4_time)
+                        st.session_state.fitting_datetimes.append(st.session_state.dt_4)
 
                         st.checkbox('t_5', value=False, key='t_5')
                         if st.session_state.t_5:
@@ -239,6 +293,8 @@ def fitting_points(st):
                                                         step = 1800,
                                                         label_visibility = 'hidden')
                             st.session_state.dt_5 = datetime.datetime.combine(t_5_date, t_5_time)
+                            st.session_state.fitting_datetimes.append(st.session_state.dt_5)
+                            
         double_fitting_sliders(st)                        
         fitting_form = st.form(key = 'fitting_form')
         fitting_form.info('Set up the fitting run. Fitting may take some time depending on the following parameters.')
@@ -250,13 +306,39 @@ def fitting_points(st):
                            min_value=1,
                            max_value=15,
                            value = [3,5],
-                           step = 1)
+                           step = 1,
+                           key = 'iter')
         fitting_form.select_slider('Number of Particles',
                                    options=(265,512,1024,2048),
-                                   value=512)
+                                   value=512,
+                                   key = 'n_particles')
         fitting_form.select_slider('Ensemble Size',
                                    options = ('2**16','2**17','2**18'),
-                                   value = '2**17')
+                                   value = '2**17',  key='ensemble_size')
         
-        fitting_form.form_submit_button(label='Run fitting',
-                                        on_click=fitting_main(st))
+        fitting_form.text_input("Enter a filename", st.session_state.event_selected, key = 'filename')
+        form_submitted = False
+        submit_button = fitting_form.form_submit_button(label='Run fitting')
+        
+# Check if form button is clicked
+    if submit_button:
+        form_submitted = True
+    if form_submitted:
+        fitting_main(st)
+
+        
+        
+# Function to save the session state
+def save_session_state():
+    
+    output = st.session_state.filename
+    
+    # Define the path to the session state file
+    session_state_file = 'output/session_states/' + output + "_session_state.pkl"
+    
+    with open(session_state_file, "wb") as file:
+        p.dump(st.session_state, file)
+    st.success("✅ Session State saved to output folder!")
+    
+    return 
+

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from py3dcore.methods import ABC_SMC
+from py3dcore.methods import ABC_SMC, streamlit_ABC_SMC
 from py3dcore.models import ToroidalModel
 
 __author__ = "Andreas J. Weiss"

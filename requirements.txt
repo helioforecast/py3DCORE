@@ -24,6 +24,7 @@ numba==0.56.4
 numpy==1.23.5
 pandas==1.5.3
 plotly_express
+seaborn
 spacepy==0.4.1
 spiceypy==5.1.2
 streamlit

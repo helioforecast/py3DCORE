@@ -165,7 +165,7 @@ class FittingData(object):
             
                 observer_obj = getattr(heliosat, observer)()    
                 
-                if self.custom_data == False:
+                if (self.custom_data == False) or (self.custom_data == None):
                     
                     try:
                         _, data = observer_obj.get(
@@ -268,7 +268,7 @@ class FittingData(object):
             # The observer object is created
             observer_obj = getattr(heliosat, observer)() 
             
-            if self.custom_data == False:
+            if (self.custom_data == False) or (self.custom_data == None):
                     
                     try:
                         _, data = observer_obj.get(

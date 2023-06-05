@@ -36,7 +36,7 @@ sliders_3dcore = {
                        'variablename': 'exp_rat',
                        'variablename_double': 'exp_rat_double',
                       },
-    'Background Drag': {'Standard': {'min': 0.2, 'max': 3., 'step': 0.1, 'def':1.},
+    'Background Drag': {'Standard': {'min': 0.2, 'max': 3., 'step': 0.01, 'def':1.},
                         'unit': '',
                         'variablename': 'b_drag',
                         'variablename_double': 'b_drag_double',
@@ -53,7 +53,7 @@ sliders_3dcore = {
 sliders_dict = {'3DCORE': sliders_3dcore}
 
 mag_sliders_3dcore = {
-    'T_Factor': {'Standard': {'min': 100, 'max': 700, 'step': 10, 'def':500},
+    'T_Factor': {'Standard': {'min': -250, 'max': 250, 'step': 1, 'def':100},
                  'unit': '',
                  'variablename': 't_fac',
                  'variablename_double': 't_fac_double'
