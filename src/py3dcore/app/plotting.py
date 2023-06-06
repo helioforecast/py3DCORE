@@ -255,42 +255,61 @@ def plot_fitting_results(st):
     df.drop(df.columns[[0]], axis=1, inplace=True)
 
     # rename columns
-    df.columns = ['lon', 'lat', 'inc', 'D1AU', 'delta', 'launch radius', 'launch speed', 't factor', 'expansion rate', 'B decay rate', 'B1AU', 'gamma', 'vsw']
+    df.columns = ['Longitude', 'Latitude', 'Inclination', 'Diameter 1 AU', 'Aspect Ratio', 'Launch Radius', 'Launch Velocity', 'T_Factor', 'Expansion Rate', 'Magnetic Decay Rate', 'Magnetic Field Strength 1 AU', 'Background Drag', 'Background Velocity']
     
-    # Select the fit
+    # Reorder columns
+    ordered_cols = ['Longitude', 'Latitude', 'Inclination', 'Diameter 1 AU', 'Aspect Ratio', 'Launch Radius', 'Launch Velocity', 'Expansion Rate', 'Background Drag', 'Background Velocity', 'T_Factor', 'Magnetic Decay Rate', 'Magnetic Field Strength 1 AU']
+    df = df[ordered_cols]
+    
+     # Add 'eps' column from data["epses"]
+    epses = data["epses"]
+    num_rows = min(len(epses), len(df))
+    df.insert(0, 'RMSE Ɛ', epses[:num_rows])
+    
     # Select the fit
     options = [""] + df.index.tolist()
     selected_index = st.selectbox('Select fit:', options)
-
     
+    previous_index = st.session_state.get("selected_index") 
+        
     if selected_index != "":
-        # Get the index of the selected row
-        index_position = df.index.get_loc(selected_index)
+        
+            if selected_index != previous_index:
+                st.session_state.selected_index = selected_index
+                st.session_state.selected_row = df.loc[selected_index]
+                # Rerun the app from the beginning
+                st.experimental_rerun()
+        
+            # Get the index of the selected row
+            index_position = df.index.get_loc(st.session_state.selected_index)
 
-        # Apply green background to the selected row
-        def highlight_selected_row(x):
-            if x.name == index_position:
-                return ['background-color: #b3e6b3'] * len(x)
-            else:
-                return [''] * len(x)
+            # Apply green background to the selected row
+            def highlight_selected_row(x):
+                if x.name == index_position:
+                    return ['background-color: #b3e6b3'] * len(x)
+                else:
+                    return [''] * len(x)
 
-        styled_df = df.style.apply(highlight_selected_row, axis=1)
+            styled_df = df.style.apply(highlight_selected_row, axis=1)
 
-        # Render the styled DataFrame
-        st.write(styled_df)
+            # Render the styled DataFrame
+            st.write(styled_df)
+        
+        
     else:
         st.write(df)
     
-    st.write('##### Parameter Distribution')
+    if st.session_state.parameter_distribution:
+        st.write('##### Parameter Distribution')
 
-    g = sns.pairplot(df, 
-                     corner=True,
-                     height= 2,
-                     plot_kws=dict(marker="+", linewidth=1)
-                    )
-    g.map_lower(sns.kdeplot, levels=[0.05, 0.32], color=".2",warn_singular=False) #  levels are 2-sigma and 1-sigma contours
-    
-    st.pyplot(g.fig)
+        g = sns.pairplot(df, 
+                         corner=True,
+                         height= 2,
+                         plot_kws=dict(marker="+", linewidth=1)
+                        )
+        g.map_lower(sns.kdeplot, levels=[0.05, 0.32], color=".2",warn_singular=False) #  levels are 2-sigma and 1-sigma contours
+
+        st.pyplot(g.fig)
     
 
     return

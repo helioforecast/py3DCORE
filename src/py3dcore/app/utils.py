@@ -40,13 +40,38 @@ def get_catevents(day):
     end = pds.to_datetime(endtime, format=dateFormat)
 
     
-    for i, event in enumerate(begin):
-        if (begin[i].year == day.year and begin[i].month == day.month and begin[i].day == day.day):
+    for i, event in enumerate(mobegin):
+        if (mobegin[i].year == day.year and mobegin[i].month == day.month and mobegin[i].day == day.day):
             evtList.append(Event(mobegin[i], end[i], idd[i], sc[i]))
     if len(evtList) == 0:
         evtList = ['No events returned', ]
     
     return evtList
+
+
+def load_cat(date):
+    '''
+    Returns from helioforecast.space the event list for a given day
+    '''
+    url='https://helioforecast.space/static/sync/icmecat/HELIO4CAST_ICMECAT_v21.csv'
+    icmecat=pds.read_csv(url)
+    starttime = icmecat.loc[:,'icme_start_time']
+    idd = icmecat.loc[:,'icmecat_id']
+    sc = icmecat.loc[:, 'sc_insitu']
+    endtime = icmecat.loc[:,'mo_end_time']
+    mobegintime = icmecat.loc[:, 'mo_start_time']
+    
+    evtList = []
+    dateFormat="%Y/%m/%d %H:%M"
+    begin = pds.to_datetime(starttime, format=dateFormat)
+    mobegin = pds.to_datetime(mobegintime, format=dateFormat)
+    end = pds.to_datetime(endtime, format=dateFormat)
+
+    
+    for i, event in enumerate(mobegin):
+        if (mobegin[i].year == date.year and mobegin[i].month == date.month and mobegin[i].day == date.day and mobegin[i].hour == date.hour):
+            return Event(mobegin[i], end[i], idd[i], sc[i])
+
 
 def get_fitobserver(mag_coord_system, sc):
     

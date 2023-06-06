@@ -12,6 +12,7 @@ from py3dcore.app.utils import get_insitudata
 from py3dcore.app.fitting import fitting_main
 from py3dcore.app.plotting import plot_insitu, plot_fittinglines, plot_catalog, plot_additionalinsitu, plot_fitting_results
 
+
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -74,8 +75,8 @@ def run():
     
     #############################################################
     # Startup Variables
-    if 'startup' not in st.session_state:
-        st.session_state.startup = {'fitting': True}
+    #if 'startup' not in st.session_state:
+    #    st.session_state.startup = {'fitting': True}
         
     #############################################################
     # Date and Event selection
@@ -125,19 +126,31 @@ def run():
         long_val = [0., 360.]
     else:
         long_val = [0., 360.]
-        
+    
+    if 'session_state_file' in st.session_state and 'longit' in st.session_state.session_state_file['Params']:
+        slider_value = st.session_state.session_state_file['Params']['longit']
+    else:
+        slider_value = 0.
+    if 'selected_row' in st.session_state:
+        slider_value = float(st.session_state.selected_row['Longitude'])
     longit = st.sidebar.slider(f'{st.session_state.coord_system} \
                                Longitude [deg.]:',
                                min_value=long_val[0],
                                max_value=long_val[1],
-                               value=0.,
+                               value=slider_value,
                                step=0.01, key='longit') * u.degree
     
+    if 'session_state_file' in st.session_state and 'latitu' in st.session_state.session_state_file['Params']:
+        slider_value = st.session_state.session_state_file['Params']['latitu']
+    else:
+        slider_value = 0.
+    if 'selected_row' in st.session_state:
+        slider_value = float(st.session_state.selected_row['Latitude'])
     latitu = st.sidebar.slider(f'{st.session_state.coord_system} \
                                Latitude [deg.]:',
                                min_value=-90.,
                                max_value=90.,
-                               value=0.,
+                               value=slider_value,
                                step=0.01, key='latitu') * u.degree
     
     fitting_sliders(st)
@@ -238,6 +251,8 @@ def run():
     if st.session_state.fitting_results:
         st.markdown('### Fitting')
         if 'model_fittings' in st.session_state:
+            plot_fitting_results(st)
+        elif 'session_state_file' in st.session_state and 'model_fittings' in st.session_state.session_state_file['etc']:
             plot_fitting_results(st)
         else:
             st.info('Run fitting on insitu data to enable this feature.')

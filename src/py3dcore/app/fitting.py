@@ -6,7 +6,9 @@ import shutil as shutil
 import streamlit as st
 import os
 
-import pickle
+import datetime
+
+import pickle as p
 
 import py3dcore
 from py3dcore.app.utils import get_fitobserver
@@ -109,14 +111,6 @@ def fitting_main(st):
     except:
         pass
     
-    # Define the path to the session state file
-    session_state_file = 'output/session_states/' + output + "_session_state.pkl"
-    
-    with open(session_state_file, "wb") as file:
-        pickle.dump(st.session_state, file)
-    
-    st.session_state.placeholder.success("✅ Session State saved to output folder!")
-    
     fitobserver, fit_coord_system = get_fitobserver(st.session_state.mag_coord_system, st.session_state.event_selected.sc)
     st.session_state.fitholder = st.empty()
     if st.session_state.fitter == 'ABC-SMC':
@@ -139,5 +133,128 @@ def fitting_main(st):
         st.session_state.model_fittings = True
         fitprocesscontainer = st.session_state.fitholder.container()
         fitprocesscontainer.success("✅ Reached maximum number of iterations")
+        
+    save_session_state(st,model_fittings = True)
+    
+    st.session_state.placeholder.success("✅ Session State saved to output folder!")
     
     return
+
+
+        
+# Function to save the session state
+def save_session_state(st, model_fittings=False):
+    
+    output = str(st.session_state.event_selected)
+    
+    # Define the path to the session state file
+    session_state_file = 'output/session_states/' + output + "_session_state.pkl"
+    
+    possible = {
+        'Options':{
+            'coord_system',
+            'geo_model',
+            '3d_positions',
+            'insitu_data',
+            'remote_imaging',
+            'fitting_results',
+            'parameter_distribution'
+        },
+        'Params':{
+            'longit',
+            'latitu',
+            'inc',
+            'dia',
+            'asp',
+            'l_rad',
+            'l_vel',
+            'exp_rat',
+            'b_drag',
+            'bg_vel',
+            't_fac',
+            'mag_dec',
+            'mag_strength',
+        },
+        'Download_Options': {
+            'insitu_list',
+            'mag_coord_system',
+            'insitu_time_before',
+            'insitu_time_after'            
+        },
+        'Imaging_Options': {
+            'view_legend_insitu',
+            'view_catalog_insitu',
+            'view_fitting_points',
+            'view_fitting_results',
+            'view_synthetic_insitu'                 
+        },
+        'Fitting': {
+            'dt_launch',
+            'dt_A',
+            'dt_B',
+            't_1',
+            'dt_1',
+            't_2',
+            'dt_2',
+            't_3',
+            'dt_3',
+            't_4',
+            'dt_4',
+            't_5',
+            'dt_5',
+            'fitting_datetimes',
+            'longit_double',
+            'latitu_double',
+            'inc_double',
+            'dia_double',
+            'asp_double',
+            'l_rad_double',
+            'l_vel_double',
+            'exp_rat_double',
+            'b_drag_double',
+            'bg_vel_double',
+            't_fac_double',
+            'mag_dec_double',
+            'mag_strength_double',
+            'fitter',
+            'Multiprocessing',
+            'Nr_of_Jobs',
+            'iter',
+            'n_particles',
+            'ensemble_size',
+            'filename',
+            
+        },
+    
+        'etc': {
+            'model_fittings'
+            't_data',
+            'date_process',
+            'insituplot',
+            'b_data',
+            'insituend',
+            #'event_selected',
+            'insitubegin',}
+    }
+    
+    selected_items = ['Options', 'Params', 'Download_Options', 'Imaging_Options', 'Fitting', 'etc']
+    
+    session_state_dict = {}
+    
+    for item in selected_items:
+        if item in possible:
+            session_state_dict[item] = {}
+            for key in possible[item]:
+                if key in st.session_state:
+                    session_state_dict[item][key] = st.session_state[key]
+    if model_fittings == True:
+        session_state_dict['etc']['model_fittings']= True
+                    
+                    
+    # Save the dictionary as a file
+    with open(session_state_file, 'wb') as file:
+        p.dump(session_state_dict, file)
+    
+    st.success("✅ Session State saved to output folder!")
+    print(session_state_dict)
+    return 
