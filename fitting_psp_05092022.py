@@ -22,15 +22,15 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     t_launch = datetime.datetime(2022, 9, 5, 16, tzinfo=datetime.timezone.utc) # 
 
-    t_s = datetime.datetime(2022, 9, 5, 20, tzinfo=datetime.timezone.utc) 
-    t_e = datetime.datetime(2022, 9, 6, 2, 30, tzinfo=datetime.timezone.utc)
+    t_s = datetime.datetime(2022, 9, 5, 18, tzinfo=datetime.timezone.utc) 
+    t_e = datetime.datetime(2022, 9, 6, 4, tzinfo=datetime.timezone.utc)
 
     t_fit = [
         # datetime.datetime(2022, 9, 5, 18, tzinfo=datetime.timezone.utc),
-       # datetime.datetime(2022, 9, 5, 19, 5, tzinfo=datetime.timezone.utc),
-       # datetime.datetime(2022, 9, 5, 20, tzinfo=datetime.timezone.utc),
-        datetime.datetime(2022, 9, 5, 21, tzinfo=datetime.timezone.utc),
-        datetime.datetime(2022, 9, 5, 22, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2022, 9, 5, 19, 5, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2022, 9, 5, 20, tzinfo=datetime.timezone.utc),
+       # datetime.datetime(2022, 9, 5, 21, tzinfo=datetime.timezone.utc),
+       # datetime.datetime(2022, 9, 5, 22, tzinfo=datetime.timezone.utc),
         datetime.datetime(2022, 9, 6, 0, 5, tzinfo=datetime.timezone.utc),
         datetime.datetime(2022, 9, 6, 2, 5, tzinfo=datetime.timezone.utc)
      ]
@@ -69,19 +69,19 @@ if __name__ == "__main__":
         "ensemble_size": int(2**16), #2**17
         "iparams": {
            "cme_longitude": {
-               "maximum": 100,
-               "minimum": -50
+               "maximum": 0,
+               "minimum": -180
            },
            "cme_latitude": {
                "maximum": 50,
                "minimum": -50
            },
            "cme_inclination": {
-               "maximum": 50,
+               "maximum": 90,
                "minimum": 0
            }, 
            "cme_aspect_ratio": {
-               "maximum": 5,
+               "maximum": 8,
                "minimum": 1
            }, 
            "cme_diameter_1au": {
@@ -105,21 +105,21 @@ if __name__ == "__main__":
            },
            "t_factor": {
                "maximum": 250,
-               "minimum": 0
+               "minimum": -250
            },
            "background_drag": {
                "maximum": 4,
                "minimum": 0.2
-           }, 
-            "background_velocity": {
-               "maximum": 700,
-               "minimum": 50
-           } 
+           }#, 
+           # "background_velocity": {
+           #    "maximum": 900,
+           #    "minimum": 50
+           #} 
         }
     }
     
     
-    output = 'output/psp05092022_512_19/'
+    output = 'psp05092022_512_RTN_2/'
     
 
     # Deleting a non-empty folder
@@ -132,6 +132,7 @@ if __name__ == "__main__":
 
     fitter = py3dcore.ABC_SMC()
     fitter.initialize(t_launch, py3dcore.ToroidalModel, model_kwargs)
-    fitter.add_observer("PSP", t_fit, t_s, t_e)#, custom_data='psp_2022sep.p')
+    fitter.add_observer("PSP", t_fit, t_s, t_e, custom_data=False)
 
-    fitter.run(12, ensemble_size=512, reference_frame="SPP_RTN", jobs=5, workers=5, sampling_freq=3600, output=output, noise_model="psd")
+    fitter.run(15, ensemble_size=512, reference_frame="SPP_RTN", jobs=5, workers=5, sampling_freq=3600, output=output, noise_model="psd",
+              use_multiprocessing=True)

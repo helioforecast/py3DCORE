@@ -27,11 +27,9 @@ if __name__ == "__main__":
 
     t_fit = [
         datetime.datetime(2022, 6, 2, 12, tzinfo=datetime.timezone.utc),
-        #datetime.datetime(2022, 6, 2, 12, 30, tzinfo=datetime.timezone.utc),
         datetime.datetime(2022, 6, 2, 13, tzinfo=datetime.timezone.utc),
         datetime.datetime(2022, 6, 2, 13, 30, tzinfo=datetime.timezone.utc),
         datetime.datetime(2022, 6, 2, 14, tzinfo=datetime.timezone.utc)
-        #datetime.datetime(2022, 6, 2, 16, tzinfo=datetime.timezone.utc)
      ]
 
 # Restraining the initial values for the ensemble members leads to more efficient fitting.
@@ -69,10 +67,10 @@ if __name__ == "__main__":
         "iparams": {
            "cme_longitude": {
                "maximum": 0,
-               "minimum": -70
+               "minimum": -40
            },
            "cme_latitude": {
-               "maximum": 40,
+               "maximum": 20,
                "minimum": -20
            },
            "cme_inclination": {
@@ -118,7 +116,7 @@ if __name__ == "__main__":
     }
     
     
-    output = 'output/psp02062022_512_final_1/'
+    output = 'psp02062022_512_final_2/'
     
 
     # Deleting a non-empty folder
@@ -131,6 +129,7 @@ if __name__ == "__main__":
 
     fitter = py3dcore.ABC_SMC()
     fitter.initialize(t_launch, py3dcore.ToroidalModel, model_kwargs)
-    fitter.add_observer("PSP", t_fit, t_s, t_e)
+    fitter.add_observer("PSP", t_fit, t_s, t_e, custom_data=False)
 
-    fitter.run(12, ensemble_size=512, reference_frame="SPP_RTN", jobs=5, workers=5, sampling_freq=3600, output=output, noise_model="psd")
+    fitter.run(12, ensemble_size=512, reference_frame="SPP_RTN", jobs=5, workers=5, sampling_freq=3600, output=output, noise_model="psd",
+              use_multiprocessing=True)

@@ -69,7 +69,7 @@ def generate_ensemble(path: str, dt: datetime.datetime, reference_frame: str="HC
     ensemble_data = []
     
 
-    for (observer, _, _, _, _) in observers:
+    for (observer, _, _, _, _, _) in observers:
         ftobj = BaseMethod(path) # load Fitter from path
         
         observer_obj = getattr(heliosat, observer)() # get observer object
@@ -152,13 +152,10 @@ def get_params(filepath, give_mineps=False):
     return resparams, fit_res_mean, fit_res_std, ip, keys, iparams_arrt
 
 
-def get_overwrite(out, heeq=True):
+def get_overwrite(out):
     
     """ creates iparams from run with specific output"""
-    
-    if heeq==True:
-        out[1] = out[1] - 65.1  # hard coded PSP position in HEEQ, to be added to RTN outcome of 3DCORE fit
-        out[2] = out[2] - 3.6
+
     
     overwrite = {
         "cme_longitude": {
@@ -324,7 +321,7 @@ def fullinsitu(observer, t_fit=None, start=None, end=None, filepath=None, ref_fr
     
     if best == True:
         model_obj = returnfixedmodel(filepath)
-        outa = np.squeeze(np.array(model_obj.simulator(t, pos))[0])
+        outa = np.squeeze(np.array(model_obj.simulator(t, pos))[0])       
         outa[outa==0] = np.nan
         print(len(outa))
         print(outa)
@@ -453,8 +450,8 @@ def returnmodel(filepath):
     t_launch = BaseMethod(filepath).dt_0
     
     res_mineps, res_mean, res_std, ind, keys, allres = get_params(filepath)
-    overwrite = get_overwrite(res_mineps, heeq=True)
-    print(overwrite)
+    overwrite = get_overwrite(res_mineps)
+    #print(overwrite)
     
     model_obj = py3dcore.ToroidalModel(t_launch, 1, iparams=overwrite)
     
@@ -489,10 +486,10 @@ def full3d(spacecraftlist=['solo', 'psp'], planetlist=['Earth'], t=None, traj=50
     C3 = "xkcd:azure"
 
     earth_color='blue'
-    solo_color='orange'
-    venus_color='mediumseagreen'
+    solo_color='mediumseagreen'
+    venus_color='orange'
     mercury_color='grey'
-    psp_color='black'
+    psp_color='mediumorchid'
     sta_color='red'
     bepi_color='coral' 
     
@@ -536,9 +533,9 @@ def full3d(spacecraftlist=['solo', 'psp'], planetlist=['Earth'], t=None, traj=50
     #    plot_circle(ax, pos_mer[0])    
     
     if legend == True:
-        ax.legend(loc='upper right')
+        ax.legend(loc='lower left')
     if title == True:
-        plt.title('3DCORE fitting result - ' + t.strftime('%Y-%m-%d-%H'))
+        plt.title('3DCORE fitting result - ' + t.strftime('%Y-%m-%d-%H-%M'))
     if save_fig == True:
         plt.savefig(filepath[:-7] + 'full3d.pdf', dpi=300)  
     
@@ -553,6 +550,7 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
     traj_major = kwargs.pop("traj_major", 80)
     
     if sat == "Solar Orbiter":
+        print('observer:', sat)
         observer = "SOLO"
         
     elif sat == "Parker Solar Probe":
@@ -565,7 +563,7 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
     #observer_obj.trajectory(dt, reference_frame=reference_frame    
         
     inst = getattr(heliosat, observer)() # get observer obj
-    print('inst', inst)
+    #print('inst', inst)
     logger.info("Using HelioSat to retrieve observer data")
     
     _s = kwargs.pop("s")
@@ -573,7 +571,7 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_minor=None, **k
     if traj_pos:
         print('t_snap:', t_snap)
         pos = inst.trajectory(t_snap, reference_frame="HEEQ")
-        print('pos [HEEQ - xyz]:', pos)
+        #print('pos [HEEQ - xyz]:', pos)
 
         ax.scatter(*pos.T, s=_s, **kwargs)
         

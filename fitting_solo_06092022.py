@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Fitting py3DCORE_h4c
+# # Fitting py3DCORE
 
 import heliosat as heliosat
 import logging as logging
@@ -66,12 +66,12 @@ if __name__ == "__main__":
         "ensemble_size": int(2**16), #2**17
         "iparams": {
            "cme_longitude": {
-               "maximum": 50,
-               "minimum": -50
+               "maximum": 180,
+               "minimum": 0
            },
            "cme_latitude": {
-               "maximum": 35,
-               "minimum": -35
+               "maximum": 90,
+               "minimum": -90
            },
            "cme_inclination": {
                "maximum": 360,
@@ -91,8 +91,8 @@ if __name__ == "__main__":
                "distribution": "uniform"
            },
            "t_factor": {
-               "maximum": 300,
-               "minimum": 50
+               "maximum": 250,
+               "minimum": -250
            }#,
            # "background_velocity": {
            #    "maximum": 700,
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     }
     
     
-    output = 'output/solo06092022_512_soloRTN_test/'
+    output = 'solo06092022_512_heeq_1/'
     
 
     # Deleting a non-empty folder
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
     fitter = py3dcore.ABC_SMC()
     fitter.initialize(t_launch, py3dcore.ToroidalModel, model_kwargs)
-    fitter.add_observer("SOLO", t_fit, t_s, t_e)#, custom_data='solo_2022sep.p')
+    fitter.add_observer("SOLO", t_fit, t_s, t_e, custom_data=False)
 
-    fitter.run(ensemble_size=512, reference_frame="SOLO_SUN_RTN", jobs=6, workers=6, sampling_freq=3600, output=output, noise_model="psd", use_multiprocessing=True)
+    fitter.run(15, ensemble_size=512, reference_frame="HEEQ", jobs=4, workers=4, sampling_freq=3600, output=output, noise_model="psd", use_multiprocessing=True)
 
