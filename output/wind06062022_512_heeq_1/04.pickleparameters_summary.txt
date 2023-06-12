@@ -1,0 +1,33 @@
+Summary of results
+
+Results:
+	cme_longitude: 		30.00 +/- 11.11
+	cme_latitude: 		16.76 +/- 11.43
+	cme_inclination: 		206.74 +/- 15.41
+	cme_diameter_1au: 		0.11 +/- 0.04
+	cme_aspect_ratio: 		2.81 +/- 0.74
+	cme_launch_radius: 		17.24 +/- 4.08
+	cme_launch_velocity: 		889.24 +/- 291.25
+	t_factor: 		-10.32 +/- 129.14
+	cme_expansion_rate: 		1.14 +/- 0.00
+	magnetic_decay_rate: 		1.64 +/- 0.00
+	magnetic_field_strength_1au: 		6.61 +/- 1.07
+	background_drag: 		1.75 +/- 0.73
+	background_velocity: 		425.47 +/- 82.46
+
+Parameters for run with min(eps):
+ --cme_longitude -3.28
+ --cme_latitude 2.59
+ --cme_inclination 201.44
+ --cme_diameter_1au 0.10
+ --cme_aspect_ratio 1.65
+ --cme_launch_radius 11.98
+ --cme_launch_velocity 830.91
+ --t_factor -156.31
+ --cme_expansion_rate 1.14
+ --magnetic_decay_rate 1.64
+ --magnetic_field_strength_1au 9.81
+ --background_drag 0.48
+ --background_velocity 242.82
+
+Fitting points:['06/06/2022, 18:00:00', '06/06/2022, 23:00:00']
