@@ -21,12 +21,12 @@ sliders_3dcore = {
                      'variablename': 'asp',
                      'variablename_double': 'asp_double'
                     },
-    'Launch Radius': {'Standard': {'min' : 5, 'max': 100 , 'step': 1, 'def':20},
+    'Launch Radius': {'Standard': {'min' : 5., 'max': 100. , 'step': 1., 'def':20.},
                       'unit': '[R_Sun]',
                       'variablename': 'l_rad',
                       'variablename_double': 'l_rad_double'
                      },
-    'Launch Velocity': {'Standard': {'min': 400, 'max': 1200, 'step': 10, 'def':800},
+    'Launch Velocity': {'Standard': {'min': 400., 'max': 1200., 'step': 10., 'def':800.},
                         'unit': '[km/s]',
                         'variablename': 'l_vel',
                         'variablename_double': 'l_vel_double'
@@ -41,7 +41,7 @@ sliders_3dcore = {
                         'variablename': 'b_drag',
                         'variablename_double': 'b_drag_double',
                        },
-    'Background Velocity': {'Standard': {'min': 100, 'max': 700, 'step': 10, 'def':500},
+    'Background Velocity': {'Standard': {'min': 100., 'max': 700., 'step': 10., 'def':500.},
                             'unit': '[km/s]',
                             'variablename': 'bg_vel',
                             'variablename_double': 'bg_vel_double'
@@ -53,7 +53,7 @@ sliders_3dcore = {
 sliders_dict = {'3DCORE': sliders_3dcore}
 
 mag_sliders_3dcore = {
-    'T_Factor': {'Standard': {'min': -250, 'max': 250, 'step': 1, 'def':100},
+    'T_Factor': {'Standard': {'min': -250., 'max': 250., 'step': 1., 'def':100.},
                  'unit': '',
                  'variablename': 't_fac',
                  'variablename_double': 't_fac_double'
@@ -63,7 +63,7 @@ mag_sliders_3dcore = {
                             'variablename': 'mag_dec',
                             'variablename_double': 'mag_dec_double'
                            },
-    'Magnetic Field Strength 1 AU': {'Standard': {'min': 5, 'max': 50, 'step': 1, 'def':25},
+    'Magnetic Field Strength 1 AU': {'Standard': {'min': 5., 'max': 50., 'step': 1., 'def':25.},
                                      'unit': '[nT]',
                                      'variablename': 'mag_strength',
                                      'variablename_double': 'mag_strength_double'

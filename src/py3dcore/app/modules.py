@@ -145,6 +145,7 @@ def fitting_sliders(st):
             else:
                 slider_value = sd[gmodel][slider][adjustments]['def']
             if 'selected_row' in st.session_state:
+                
                 slider_value = float(st.session_state.selected_row[slider])
 
             try:
@@ -319,7 +320,7 @@ def fitting_points(st):
 
         
         # Fitting Points
-        st.info('Select a minimum of 1 or up to 5 fitting points inside of the fluxrope. These are used to determine the quality of a fit.')
+        st.info('Select a minimum of 2 or up to 5 fitting points inside of the fluxrope. These are used to determine the quality of a fit.')
         st.checkbox('t_1', value=True, key='t_1')
         if st.session_state.t_1:
             col1, col2 = st.columns(2)
@@ -331,7 +332,7 @@ def fitting_points(st):
             st.session_state.dt_1 = datetime.datetime.combine(t_1_date, t_1_time)
             st.session_state.fitting_datetimes.append(st.session_state.dt_1)
 
-            st.checkbox('t_2', value=False, key='t_2')
+            st.checkbox('t_2', value=True, key='t_2')
             if st.session_state.t_2:
                 col1, col2 = st.columns(2)
                 default_fit2_date = defaulttimer(st, 4).dateA
@@ -424,5 +425,6 @@ def fitting_points(st):
         form_submitted = True
     if form_submitted:
         fitting_main(st)
+        form_submitted = False
 
         

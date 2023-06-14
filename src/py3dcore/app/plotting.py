@@ -17,7 +17,7 @@ import pandas as pds
 import datetime
 import matplotlib.dates as mdates
 
-from py3dcore.app.utils import get_insitudata, loadpickle
+from py3dcore.app.utils import get_insitudata, loadpickle, get_iparams, get_iparams_exp
 import py3dcore
 
 import traceback
@@ -50,7 +50,7 @@ def plot_insitu(st):
         
     
 
-    fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
+    fig = make_subplots(rows=1, cols=1, shared_xaxes=True, subplot_titles = [st.session_state.event_selected.sc])
     fig.add_trace(
         go.Scatter(
             x=st.session_state.t_data,
@@ -98,6 +98,7 @@ def plot_insitu(st):
         ),
         row=1, col=1
     )
+
     
     
     fig.update_yaxes(title_text='B [nT]', row=1, col=1)
@@ -109,7 +110,66 @@ def plot_insitu(st):
     
     return fig
 
-def plot_additionalinsitu(st,insitucontainer):
+def plot_selected_synthetic_insitu(st,df):
+
+    dt_0 = st.session_state.dt_launch
+    
+    for index in st.session_state.selected_indices:
+        row = df.loc[index]
+        iparams = get_iparams_exp(row)
+        model_obj = py3dcore.ToroidalModel(dt_0, **iparams) # model gets initialized
+        model_obj.generator()
+        # Create ndarray with dtype=object to handle ragged nested sequences
+        outa = np.array(model_obj.simulator(st.session_state.t_data, st.session_state.pos_data), dtype=object)
+        outa = np.squeeze(outa[0])
+        outa[outa==0] = np.nan
+    
+        st.session_state.insituplot.add_trace(
+            go.Scatter(
+                x=st.session_state.t_data,
+                y=outa[:, 0],
+                line=dict(color='red', width=2, dash='dot'),
+                showlegend=False
+            ),
+            row=1, col=1
+        )
+
+        st.session_state.insituplot.add_trace(
+            go.Scatter(
+                x=st.session_state.t_data,
+                y=outa[:, 1],
+                line=dict(color='green', width=2, dash='dot'),
+                showlegend=False
+            ),
+            row=1, col=1
+        )
+
+        st.session_state.insituplot.add_trace(
+            go.Scatter(
+                x=st.session_state.t_data,
+                y=np.sqrt(np.sum(outa**2, axis=1)),
+                line=dict(color='black', width=2, dash='dot'),
+                showlegend=False
+            ),
+            row=1, col=1
+        )
+
+        st.session_state.insituplot.add_trace(
+            go.Scatter(
+                x=st.session_state.t_data,
+                y=outa[:, 2],
+                line=dict(color='blue', width=2, dash='dot'),
+                showlegend=False
+            ),
+            row=1, col=1
+        )
+    
+    return 
+
+
+def plot_additionalinsitu(st):
+    
+    
     if st.session_state.mag_coord_system == 'HEEQ':
         names = ['Bx', 'By', 'Bz']
     else:
@@ -123,8 +183,10 @@ def plot_additionalinsitu(st,insitucontainer):
             if sc == st.session_state.event_selected.sc:
                 pass
             else:
+                ph = st.session_state.insitucontainer.empty()
                 try:
-                    b_data, t_data = get_insitudata(st.session_state.mag_coord_system, sc, st.session_state.insitubegin, st.session_state.insituend)
+                    ph.info("⏳ Downloading Insitu Data...")
+                    b_data, t_data, _ = get_insitudata(st.session_state.mag_coord_system, sc, st.session_state.insitubegin, st.session_state.insituend)
                 
                     trace1 = go.Scatter(
                         x=t_data,
@@ -162,11 +224,11 @@ def plot_additionalinsitu(st,insitucontainer):
                             showlegend=st.session_state.view_legend_insitu
                         )
                     
-                    insitucontainer.success("✅ Successfully downloaded " + sc + " Insitu Data")
+                    ph.success("✅ Successfully downloaded " + sc + " Insitu Data")
                     traceplots.append([trace1,trace2,trace3,trace4])
                     titles.append(sc)
                 except Exception as e:
-                    insitucontainer.info("❌ Failed to download " + sc + " Insitu Data - Try downloading kernel manually or adding custom file in HelioSat folder! See terminal output for more information.")
+                    ph.info("❌ Failed to download " + sc + " Insitu Data - Try downloading kernel manually or adding custom file in HelioSat folder! See terminal output for more information.")
                     # Print the traceback information
                     print(sc + " ---- ERROR:")
                     print(str(e))
@@ -233,7 +295,62 @@ def plot_catalog(st):
                                                  
     return
 
-import scipy.stats as kde
+def plot_synthetic_insitu(st):
+
+    dt_0, iparams = get_iparams(st)
+    model_obj = py3dcore.ToroidalModel(dt_0, **iparams) # model gets initialized
+    model_obj.generator()
+    # model_obj = fp.returnfixedmodel(self.filename, fixed_iparams_arr='mean')
+    # Create ndarray with dtype=object to handle ragged nested sequences
+    outa = np.array(model_obj.simulator(st.session_state.t_data, st.session_state.pos_data), dtype=object)
+    outa = np.squeeze(outa[0])
+
+    outa[outa==0] = np.nan
+    
+    st.session_state.insituplot.add_trace(
+        go.Scatter(
+            x=st.session_state.t_data,
+            y=outa[:, 0],
+            line=dict(color='red', width=4, dash='dash'),
+            showlegend=False
+        ),
+        row=1, col=1
+    )
+    
+    st.session_state.insituplot.add_trace(
+        go.Scatter(
+            x=st.session_state.t_data,
+            y=outa[:, 1],
+            line=dict(color='green', width=4, dash='dash'),
+            showlegend=False
+        ),
+        row=1, col=1
+    )
+    
+    st.session_state.insituplot.add_trace(
+        go.Scatter(
+            x=st.session_state.t_data,
+            y=np.sqrt(np.sum(outa**2, axis=1)),
+            line=dict(color='black', width=4, dash='dash'),
+            showlegend=False
+        ),
+        row=1, col=1
+    )
+    
+    st.session_state.insituplot.add_trace(
+        go.Scatter(
+            x=st.session_state.t_data,
+            y=outa[:, 2],
+            line=dict(color='blue', width=4, dash='dash'),
+            showlegend=False
+        ),
+        row=1, col=1
+    )
+    
+    return 
+
+    
+
 
 def plot_fitting_results(st):
     
@@ -266,41 +383,98 @@ def plot_fitting_results(st):
     num_rows = min(len(epses), len(df))
     df.insert(0, 'RMSE Ɛ', epses[:num_rows])
     
-    # Select the fit
-    options = [""] + df.index.tolist()
-    selected_index = st.selectbox('Select fit:', options)
+    # Calculate statistics
+    mean_values = df.mean()
+    std_values = df.std()
+    median_values = df.median()
+    min_values = df.min()
+    max_values = df.max()
+    q1_values = df.quantile(0.25)
+    q3_values = df.quantile(0.75)
+    skewness_values = df.skew()
+    kurtosis_values = df.kurt()
+
+    # Create mean_row DataFrame with desired statistics
+    mean_row = pds.DataFrame(
+        [mean_values, std_values, median_values, min_values, max_values,
+         q1_values, q3_values, skewness_values,
+         kurtosis_values],
+        index=["Mean", "Standard Deviation", "Median", "Minimum", "Maximum",
+               "Q1", "Q3", "Skewness", "Kurtosis"],
+        columns=df.columns
+    )
     
+    
+    # Select the fit
+    
+    
+    options = [""] + ["mean"] + df.index.tolist()
+    st.info("Please note that once the sliders have been manually adjusted, it is currently not possible to select a specific fit from the dataframe within the app. To choose a fit, please reload the app by refreshing the page or using the reload functionality in your web browser.")
+    
+    col1, col2 = st.columns([1,4])
+    with col1:
+        selected_index = st.selectbox('Select fit:', options)
+    options = ["mean"] + df.index.tolist()
+    with col2:
+        st.session_state.selected_indices = st.multiselect('Plot:', options)
     previous_index = st.session_state.get("selected_index") 
         
     if selected_index != "":
         
-            if selected_index != previous_index:
-                st.session_state.selected_index = selected_index
+        if selected_index != previous_index:
+            st.session_state.selected_index = selected_index
+            if selected_index == "mean":
+                st.session_state.selected_row = mean_row.loc['Mean']
+            else:
                 st.session_state.selected_row = df.loc[selected_index]
-                # Rerun the app from the beginning
-                st.experimental_rerun()
+            # Rerun the app from the beginning
+            st.experimental_rerun()
+                
+    if st.session_state.selected_indices:
         
-            # Get the index of the selected row
-            index_position = df.index.get_loc(st.session_state.selected_index)
+        rounded_df = df.round(2)
+        rounded_df_styled = rounded_df.style.format("{:.2f}")
 
-            # Apply green background to the selected row
-            def highlight_selected_row(x):
-                if x.name == index_position:
-                    return ['background-color: #b3e6b3'] * len(x)
-                else:
-                    return [''] * len(x)
+        rounded_mean_row = mean_row.round(2)
+        rounded_mean_row_styled = rounded_mean_row.style.format("{:.2f}")
 
-            styled_df = df.style.apply(highlight_selected_row, axis=1)
+        # Apply green background to the selected rows
+        def highlight_selected_row(x):
+            return ['background-color: #b3e6b3' if x.name in st.session_state.selected_indices else '' for _ in x]
 
-            # Render the styled DataFrame
-            st.write(styled_df)
+        styled_df = rounded_df_styled.apply(highlight_selected_row, axis=1)
+
+
+        def highlight_mean(x):
+            return ['background-color: #b3e6b3' if x.name == 'Mean' else '' for _ in x]
+        if "mean" in st.session_state.selected_indices:
+            styled_mean = rounded_mean_row_styled.apply(highlight_mean, axis = 1)
+        else: styled_mean = rounded_mean_row_styled
+        
+        
+        plot_selected_synthetic_insitu(st,df)
+
+        # Render the styled DataFrame
+        st.write('###### Statistics')
+        st.write(styled_mean)
+        st.write('###### Accepted Fits')
+        st.write(styled_df)
         
         
     else:
-        st.write(df)
+        rounded_df = df.round(2)
+        rounded_df_styled = rounded_df.style.format("{:.2f}")
+
+        rounded_mean_row = mean_row.round(2)
+        rounded_mean_row_styled = rounded_mean_row.style.format("{:.2f}")
+        
+        st.write('###### Statistics')
+        st.write(rounded_mean_row_styled)
+        st.write('###### Accepted Fits')
+        st.write(rounded_df_styled)
     
     if st.session_state.parameter_distribution:
-        st.write('##### Parameter Distribution')
+        st.write('###### Parameter Distribution')
 
         g = sns.pairplot(df, 
                          corner=True,
@@ -313,61 +487,6 @@ def plot_fitting_results(st):
     
 
     return
-    
-''''   
-    iparams_arrt = iparams_arrt[:,1:]
-    # Ensure the number of columns matches the expected size
-    expected_columns = ['lon', 'lat', 'inc', 'D1AU', 'delta', 'launch radius', 'launch speed', 't factor', 'expansion rate', 'B decay rate', 'B1AU', 'gamma', 'vsw']
-    if len(iparams_arrt[0]) != len(expected_columns):
-        raise ValueError(f"Number of columns in the data ({len(iparams_arrt[0])}) does not match the expected size ({len(expected_columns)})")
-
-    df = pds.DataFrame(iparams_arrt, columns=expected_columns)
-
-    fig = make_subplots(rows=len(df.columns), cols=len(df.columns), shared_xaxes=False, shared_yaxes=False)
-    
-    
-    # Create scatter plots and histograms
-    for i in range(len(df.columns)):
-        for j in range(i+1):
-            if i == j:
-                # Add histogram on diagonal
-                fig.add_trace(go.Histogram(x=df.iloc[:, i], name=df.columns[i], nbinsx=30), row=i+1, col=i+1)
-            else:
-                # Add scatter plot in lower triangle
-                fig.add_trace(go.Scatter(
-                    x=df.iloc[:, j],
-                    y=df.iloc[:, i],
-                    mode='markers',
-                    marker=dict(symbol="cross", size=4, opacity=0.5),
-                    showlegend=False
-                ), row=i+1, col=j+1)
-
-                fig.add_trace(go.Contour(
-                    x=df.iloc[:, j],
-                    y=df.iloc[:, i],
-                    colorscale='Greys',
-                    contours=dict(coloring='lines', showlabels=False, start=0.05, end=0.95, size=0.1),
-                    showscale=False,
-                    hoverinfo='none'
-                ), row=i+1, col=j+1)            )
-
-    # Update subplot axes and layout
-    for i, col in enumerate(df.columns):
-        fig.update_xaxes(title_text=col, row=len(df.columns), col=i+1)
-        fig.update_yaxes(title_text=col, row=i+1, col=1)
-
-    fig.update_layout(
-        title="Pairwise Scatter Plot",
-        width=1800,
-        height=1800,
-    )
-    
-    #fig.show()
-    st.write(fig)
-    
-    return
-    
-'''
 
 
 def plot_fitting_process(st, reached = False):

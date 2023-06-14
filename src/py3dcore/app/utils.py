@@ -3,12 +3,14 @@ import datetime
 import heliosat
 
 import streamlit as st
+import functools 
 
 import pickle as p
 import numpy as np
 import pandas as pds
 
 import os
+
 
 class Event:
     
@@ -112,7 +114,8 @@ def get_fitobserver(mag_coord_system, sc):
         observer = 'Wind'
         
     return observer, reference_frame
-    
+
+@functools.lru_cache(maxsize=25)    
 def get_insitudata(mag_coord_system, sc, insitubegin, insituend):
     
         
@@ -160,8 +163,9 @@ def get_insitudata(mag_coord_system, sc, insitubegin, insituend):
     
     t, b = observer_obj.get([insitubegin,insituend], "mag", reference_frame=reference_frame, as_endpoints=True)
     dt = [datetime.datetime.utcfromtimestamp(ts) for ts in t]
+    pos = observer_obj.trajectory(dt, reference_frame=reference_frame)
     
-    return b, dt
+    return b, dt, pos
 
 
 def loadpickle(path=None, number=-1):
@@ -195,3 +199,132 @@ class defaulttimer:
         self.dateB = datetime.date(datetimeend.year, datetimeend.month, datetimeend.day)
         self.timeA = datetime.time(datetimestart.hour, datetimestart.minute)
         self.timeB = datetime.time(datetimeend.hour, datetimeend.minute)
+        
+        
+        
+        
+def get_iparams(st):
+    
+    t_launch = st.session_state.dt_launch
+    
+    model_kwargs = {
+        "ensemble_size": int(1), #2**17
+        "iparams": {
+            "cme_longitude": {
+                "distribution": "fixed",
+                "default_value": st.session_state.longit
+            },
+            "cme_latitude": {
+                "distribution": "fixed",
+                "default_value": st.session_state.latitu
+            },
+            "cme_inclination": {
+                "distribution": "fixed",
+                "default_value": st.session_state.inc
+            },
+            "cme_diameter_1au": {
+                "distribution": "fixed",
+                "default_value": st.session_state.dia
+            },
+            "cme_aspect_ratio": {
+                "distribution": "fixed",
+                "default_value": st.session_state.asp
+            },
+            "cme_launch_radius": {
+                "distribution": "fixed",
+                "default_value": st.session_state.l_rad
+            },
+            "cme_launch_velocity": {
+                "distribution": "fixed",
+                "default_value": st.session_state.l_vel
+            },
+            "t_factor": {
+                "distribution": "fixed",
+                "default_value": st.session_state.t_fac
+            },
+            "cme_expansion_rate": {
+                "distribution": "fixed",
+                "default_value": st.session_state.exp_rat
+            },
+            "magnetic_decay_rate": {
+                "distribution": "fixed",
+                "default_value": st.session_state.mag_dec
+            },
+            "magnetic_field_strength_1au": {
+                "distribution": "fixed",
+                "default_value": st.session_state.mag_strength
+            },
+            "background_drag": {
+                "distribution": "fixed",
+                "default_value": st.session_state.b_drag
+            },
+            "background_velocity": {
+                "distribution": "fixed",
+                "default_value": st.session_state.bg_vel
+            }
+        }
+    }
+    
+    return t_launch, model_kwargs
+
+def get_iparams_exp(row):
+    
+    model_kwargs = {
+        "ensemble_size": int(1), #2**17
+        "iparams": {
+            "cme_longitude": {
+                "distribution": "fixed",
+                "default_value": row['Longitude']
+            },
+            "cme_latitude": {
+                "distribution": "fixed",
+                "default_value": row['Latitude']
+            },
+            "cme_inclination": {
+                "distribution": "fixed",
+                "default_value": row['Inclination']
+            },
+            "cme_diameter_1au": {
+                "distribution": "fixed",
+                "default_value": row['Diameter 1 AU']
+            },
+            "cme_aspect_ratio": {
+                "distribution": "fixed",
+                "default_value": row['Aspect Ratio']
+            },
+            "cme_launch_radius": {
+                "distribution": "fixed",
+                "default_value": row['Launch Radius']
+            },
+            "cme_launch_velocity": {
+                "distribution": "fixed",
+                "default_value": row['Launch Velocity']
+            },
+            "t_factor": {
+                "distribution": "fixed",
+                "default_value": row['T_Factor']
+            },
+            "cme_expansion_rate": {
+                "distribution": "fixed",
+                "default_value": row['Expansion Rate']
+            },
+            "magnetic_decay_rate": {
+                "distribution": "fixed",
+                "default_value": row['Magnetic Decay Rate']
+            },
+            "magnetic_field_strength_1au": {
+                "distribution": "fixed",
+                "default_value": row['Magnetic Field Strength 1 AU']
+            },
+            "background_drag": {
+                "distribution": "fixed",
+                "default_value": row['Background Drag']
+            },
+            "background_velocity": {
+                "distribution": "fixed",
+                "default_value": row['Background Velocity']
+            }
+        }
+    }
+    
+    return model_kwargs

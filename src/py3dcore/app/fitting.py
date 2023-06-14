@@ -232,6 +232,7 @@ def save_session_state(st, model_fittings=False):
             'date_process',
             'insituplot',
             'b_data',
+            'pos_data',
             'insituend',
             #'event_selected',
             'insitubegin',}
@@ -256,5 +257,4 @@ def save_session_state(st, model_fittings=False):
         p.dump(session_state_dict, file)
     
     st.success("✅ Session State saved to output folder!")
-    print(session_state_dict)
     return 

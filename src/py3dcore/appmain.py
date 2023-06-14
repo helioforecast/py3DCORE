@@ -10,7 +10,7 @@ from py3dcore.app.config import app_styles, selected_imagers #, config_sliders, 
 from py3dcore.app.modules import date_and_event_selection, fitting_and_slider_options_container, fitting_sliders, fitting_points #, final_parameters_gmodel, fitting_sliders, maps_clims
 from py3dcore.app.utils import get_insitudata
 from py3dcore.app.fitting import fitting_main
-from py3dcore.app.plotting import plot_insitu, plot_fittinglines, plot_catalog, plot_additionalinsitu, plot_fitting_results
+from py3dcore.app.plotting import plot_insitu, plot_fittinglines, plot_catalog, plot_additionalinsitu, plot_fitting_results, plot_synthetic_insitu
 
 
 import logging
@@ -207,15 +207,18 @@ def run():
         ## insitu plots
         
         st.markdown('### Insitu Data')
-        insitucontainer = st.session_state.placeholder.container()
+        
+        st.session_state.insitucontainer = st.session_state.placeholder.container()
         
         if 'b_data' not in st.session_state:
-            insitucontainer.info("⏳ Downloading Insitu Data...")
+            ph = st.session_state.insitucontainer.empty()
+            ph.info("⏳ Downloading Insitu Data...")
+            
             try:
-                st.session_state.b_data, st.session_state.t_data = get_insitudata(st.session_state.mag_coord_system, st.session_state.event_selected.sc, st.session_state.insitubegin, st.session_state.insituend)
-                st.session_state.placeholder.success("✅ Successfully downloaded " + st.session_state.event_selected.sc + " Insitu Data")
+                st.session_state.b_data, st.session_state.t_data, st.session_state.pos_data = get_insitudata(st.session_state.mag_coord_system, st.session_state.event_selected.sc, st.session_state.insitubegin, st.session_state.insituend)
+                ph.success("✅ Successfully downloaded " + st.session_state.event_selected.sc + " Insitu Data")
             except:
-                st.session_state.placeholder.info("❌ Failed to download " + st.session_state.event_selected.sc + " Insitu Data - Try downloading kernel manually or adding custom file in HelioSat Folder!")
+                ph.info("❌ Failed to download " + st.session_state.event_selected.sc + " Insitu Data - Try downloading kernel manually or adding custom file in HelioSat Folder!")
                 
                 
         st.session_state.insituplot = plot_insitu(st)
@@ -226,10 +229,12 @@ def run():
         if st.session_state.view_catalog_insitu:
             plot_catalog(st)
             
+        if st.session_state.view_synthetic_insitu:
+            plot_synthetic_insitu(st)
         
         st.write(st.session_state.insituplot)
         
-        plot_additionalinsitu(st,insitucontainer)
+        plot_additionalinsitu(st)
         
     #############################################################
     # Observer and 3D Positions
