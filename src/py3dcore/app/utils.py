@@ -166,7 +166,7 @@ def get_insitudata(mag_coord_system, sc, insitubegin, insituend):
     pos = observer_obj.trajectory(dt, reference_frame=reference_frame)
     
     
-    return b, t, pos
+    return b, dt, pos
 
 
 def loadpickle(path=None, number=-1):
