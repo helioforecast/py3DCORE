@@ -165,7 +165,8 @@ def get_insitudata(mag_coord_system, sc, insitubegin, insituend):
     dt = [datetime.datetime.utcfromtimestamp(ts) for ts in t]
     pos = observer_obj.trajectory(dt, reference_frame=reference_frame)
     
-    return b, dt, pos
+    
+    return b, t, pos
 
 
 def loadpickle(path=None, number=-1):

@@ -160,7 +160,6 @@ def run():
     
     # View the fittings table
     if st.session_state.insitu_data:
-        st.session_state.mag_coord_system = 'HEEQ'
         st.sidebar.markdown('---')
         st.sidebar.markdown('## Insitu Data')
         with st.sidebar.expander('Download Options'):
@@ -174,7 +173,7 @@ def run():
                                                           default=default_observer,
                                                           key='insitu_list')
             select_insitu_form.radio('Magnetic Coordinate System', options=['HEEQ', 'RTN'], 
-                     args=[st], key='mag_coord_system')
+                     args=[st], key='mag_coord_system', index = 1)
             
             select_insitu_form.info('Select how many days should be plotted before/after the event.')
             col1, col2 = select_insitu_form.columns(2)
@@ -213,13 +212,12 @@ def run():
         if 'b_data' not in st.session_state:
             ph = st.session_state.insitucontainer.empty()
             ph.info("⏳ Downloading Insitu Data...")
-            
+
             try:
                 st.session_state.b_data, st.session_state.t_data, st.session_state.pos_data = get_insitudata(st.session_state.mag_coord_system, st.session_state.event_selected.sc, st.session_state.insitubegin, st.session_state.insituend)
                 ph.success("✅ Successfully downloaded " + st.session_state.event_selected.sc + " Insitu Data")
             except:
                 ph.info("❌ Failed to download " + st.session_state.event_selected.sc + " Insitu Data - Try downloading kernel manually or adding custom file in HelioSat Folder!")
-                
                 
         st.session_state.insituplot = plot_insitu(st)
         

@@ -284,8 +284,8 @@ def fitting_points(st):
         
         t_launch_date = col1.date_input('Launch Time:',
                               value=default_launch_date,
-                              min_value=defaulttimer(st,-(72*5)).dateA,
-                              max_value=defaulttimer(st,-24).dateA)
+                              min_value=defaulttimer(st,-(72*10)).dateA,
+                              max_value=defaulttimer(st,-10).dateA)
         
         default_launch_time = defaulttimer(st, -72).timeA
         if 'session_state_file' in st.session_state and 'dt_launch' in st.session_state.session_state_file['Fitting']:

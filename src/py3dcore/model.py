@@ -235,6 +235,8 @@ class SimulationBlackBox(object):
                 np.empty((self.ensemble_size, len(sparams)), dtype=self.dtype)
                 for _ in range(len(dt))
             ]
+        
+        
 
         for i in range(len(dt)):
             # propagate model to point i
