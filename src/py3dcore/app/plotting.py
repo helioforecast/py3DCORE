@@ -17,7 +17,7 @@ import pandas as pds
 import datetime
 import matplotlib.dates as mdates
 
-from py3dcore.app.utils import get_insitudata, loadpickle, get_iparams, get_iparams_exp
+from py3dcore.app.utils import get_insitudata, loadpickle, get_iparams, get_iparams_exp, generate_ensemble, get_fitobserver
 import py3dcore
 
 import traceback
@@ -99,8 +99,12 @@ def plot_insitu(st):
         row=1, col=1
     )
 
-    
-    
+    # Extract the numerical value from the selected width option
+    width_percentage = int(st.session_state.selected_width.strip('%'))
+    # Calculate the width in pixels based on the selected percentage
+    width_pixels = width_percentage / 100 * 800
+
+    fig.update_layout(width=width_pixels)
     fig.update_yaxes(title_text='B [nT]', row=1, col=1)
     fig.update_yaxes(showgrid=True, zeroline=False, showticklabels=True,
                      showspikes=True, spikemode='across', spikesnap='cursor', showline=False, spikedash='solid', spikethickness=1)
@@ -110,12 +114,16 @@ def plot_insitu(st):
     
     return fig
 
-def plot_selected_synthetic_insitu(st,df):
+def plot_selected_synthetic_insitu(st):
 
     dt_0 = st.session_state.dt_launch
     
     for index in st.session_state.selected_indices:
-        row = df.loc[index]
+        if index != "mean":
+            row = st.session_state.df.loc[index]
+        else:
+            row = st.session_state.mean_df.loc['Mean']
+            
         iparams = get_iparams_exp(row)
         model_obj = py3dcore.ToroidalModel(dt_0, **iparams) # model gets initialized
         model_obj.generator()
@@ -123,7 +131,8 @@ def plot_selected_synthetic_insitu(st,df):
         outa = np.array(model_obj.simulator(st.session_state.t_data, st.session_state.pos_data), dtype=object)
         outa = np.squeeze(outa[0])
         outa[outa==0] = np.nan
-    
+
+
         st.session_state.insituplot.add_trace(
             go.Scatter(
                 x=st.session_state.t_data,
@@ -416,9 +425,10 @@ def plot_fitting_results(st):
         selected_index = st.selectbox('Select fit:', options)
     options = ["mean"] + df.index.tolist()
     with col2:
-        st.session_state.selected_indices = st.multiselect('Plot:', options)
-    previous_index = st.session_state.get("selected_index") 
-        
+        selected_indices = st.multiselect('Plot:', options)
+    previous_index = st.session_state.get("selected_index")
+    previous_indices = st.session_state.get("selected_indices") 
+            
     if selected_index != "":
         
         if selected_index != previous_index:
@@ -430,12 +440,20 @@ def plot_fitting_results(st):
             # Rerun the app from the beginning
             st.experimental_rerun()
                 
-    if st.session_state.selected_indices:
+    if selected_indices != "":
+         
+        if selected_indices != previous_indices:
+            st.session_state.selected_indices = selected_indices
+            # Rerun the app from the beginning
+            st.experimental_rerun()
+        
         
         rounded_df = df.round(2)
+        st.session_state.df = rounded_df
         rounded_df_styled = rounded_df.style.format("{:.2f}")
 
         rounded_mean_row = mean_row.round(2)
+        st.session_state.mean_df = rounded_mean_row
         rounded_mean_row_styled = rounded_mean_row.style.format("{:.2f}")
 
         # Apply green background to the selected rows
@@ -452,7 +470,7 @@ def plot_fitting_results(st):
         else: styled_mean = rounded_mean_row_styled
         
         
-        plot_selected_synthetic_insitu(st,df)
+        
 
         # Render the styled DataFrame
         st.write('###### Statistics')
@@ -463,9 +481,11 @@ def plot_fitting_results(st):
         
     else:
         rounded_df = df.round(2)
+        st.session_state.df = rounded_df
         rounded_df_styled = rounded_df.style.format("{:.2f}")
 
         rounded_mean_row = mean_row.round(2)
+        st.session_state.mean_df = rounded_mean_row
         rounded_mean_row_styled = rounded_mean_row.style.format("{:.2f}")
         
         st.write('###### Statistics')
@@ -520,5 +540,116 @@ def plot_fitting_process(st, reached = False):
                                              delta_color="inverse")
                                              
                                              
+    
+    return
+
+
+def plot_sigma(st):
+    
+    if 'filename' in st.session_state:
+        path = str(st.session_state.filename)
+        
+    else:
+        path = str(st.session_state.event_selected)
+           
+    # read from pickle file
+    filepath = loadpickle(path)
+    
+    file = open(filepath, "rb")
+    data = p.load(file)
+    file.close()
+    
+    _, fit_coord_system = get_fitobserver(st.session_state.mag_coord_system, st.session_state.event_selected.sc)
+    
+    ed = generate_ensemble(filepath, st.session_state.t_data, reference_frame=data['data_obj'].reference_frame, reference_frame_to=fit_coord_system, max_index=data['model_obj'].ensemble_size)
+    
+    # black shadow
+    st.session_state.insituplot.add_trace(
+        go.Scatter(x=st.session_state.t_data,
+                    y=ed[0][3][0], 
+                    fill=None, 
+                    mode='lines', 
+                    line_color='black', 
+                    line_width=0,
+                    showlegend=False),
+         row=1, col=1
+    )
+    st.session_state.insituplot.add_trace(
+        go.Scatter(x=st.session_state.t_data,
+                    y=ed[0][3][1], 
+                    fill='tonexty', 
+                    mode='lines', 
+                    line_color='black',
+                    line_width=0,
+                    fillcolor='rgba(0, 0, 0, 0.25)',
+                    showlegend=False),
+         row=1, col=1
+    )
+    # red shadow
+    st.session_state.insituplot.add_trace(
+        go.Scatter(x=st.session_state.t_data,
+                    y=ed[0][2][0][:, 0], 
+                    fill=None, 
+                    mode='lines', 
+                    line_color='black', 
+                    line_width=0,
+                    showlegend=False),
+         row=1, col=1
+    )
+    st.session_state.insituplot.add_trace(
+        go.Scatter(x=st.session_state.t_data,
+                    y=ed[0][2][1][:, 0], 
+                    fill='tonexty', 
+                    mode='lines', 
+                    line_color='black',
+                    line_width=0,
+                    fillcolor='rgba(255, 0, 0, 0.25)',
+                    showlegend=False),
+         row=1, col=1
+    )
+    # green shadow
+    st.session_state.insituplot.add_trace(
+        go.Scatter(x=st.session_state.t_data,
+                    y=ed[0][2][0][:, 1], 
+                    fill=None, 
+                    mode='lines', 
+                    line_color='green', 
+                    line_width=0,
+                    showlegend=False),
+         row=1, col=1
+    )
+    st.session_state.insituplot.add_trace(
+        go.Scatter(x=st.session_state.t_data,
+                    y=ed[0][2][1][:, 1], 
+                    fill='tonexty', 
+                    mode='lines', 
+                    line_color='green',
+                    line_width=0,
+                    fillcolor='rgba(0, 255, 0, 0.25)',
+                    showlegend=False),
+         row=1, col=1
+    )
+    # blue shadow
+    st.session_state.insituplot.add_trace(
+        go.Scatter(x=st.session_state.t_data,
+                    y=ed[0][2][0][:, 2], 
+                    fill=None, 
+                    mode='lines', 
+                    line_color='blue', 
+                    line_width=0,
+                    showlegend=False),
+         row=1, col=1
+    )
+    st.session_state.insituplot.add_trace(
+        go.Scatter(x=st.session_state.t_data,
+                    y=ed[0][2][1][:, 2], 
+                    fill='tonexty', 
+                    mode='lines', 
+                    line_color='blue',
+                    line_width=0,
+                    fillcolor='rgba(0,  0, 255, 0.25)',
+                    showlegend=False),
+         row=1, col=1
+    )
     
     return

@@ -199,7 +199,7 @@ def double_fitting_sliders(st):
     if st.session_state.coord_system == 'HGC':
         long_val = [0., 360.]
     else:
-        long_val = [0., 360.]
+        long_val = [-180., 180.]
                                                       
 
     adjustments = 'Standard'
@@ -420,11 +420,11 @@ def fitting_points(st):
         form_submitted = False
         submit_button = fitting_form.form_submit_button(label='Run fitting')
         
-# Check if form button is clicked
-    if submit_button:
-        form_submitted = True
-    if form_submitted:
-        fitting_main(st)
-        form_submitted = False
+        # Check if form button is clicked
+        if submit_button:
+            form_submitted = True
+        if form_submitted:
+            fitting_main(st)
+            form_submitted = False
 
         

@@ -9,6 +9,8 @@ import pickle as p
 import numpy as np
 import pandas as pds
 
+from py3dcore.methods.method import BaseMethod
+
 import os
 
 
@@ -329,3 +331,61 @@ def get_iparams_exp(row):
     }
     
     return model_kwargs
+
+def generate_ensemble(path: str, dt: datetime.datetime, reference_frame: str="HCI", reference_frame_to: str="HCI", perc: float=0.95, max_index=None) -> np.ndarray:
+    
+    """
+    Generates an ensemble from a Fitter object.
+    
+    Arguments:
+        path                where to load from
+        dt                  time axis used for fitting
+        reference_frame     reference frame used for fitter object
+        reference_frame_to  reference frame for output data
+        perc                percentage of quantile to be used
+        max_index           how much of ensemble is kept
+    Returns:
+        ensemble_data 
+    """
+
+    
+    observers = BaseMethod(path).observers
+    ensemble_data = []
+    
+
+    for (observer, _, _, _, _, _) in observers:
+        ftobj = BaseMethod(path) # load Fitter from path
+        
+        observer_obj = getattr(heliosat, observer)() # get observer object
+            
+        # simulate flux ropes using iparams from loaded fitter
+        ensemble = np.squeeze(np.array(ftobj.model_obj.simulator(dt, observer_obj.trajectory(dt, reference_frame=reference_frame))[0]))
+        
+        # how much to keep of the generated ensemble
+        if max_index is None:
+            max_index = ensemble.shape[1]
+
+        ensemble = ensemble[:, :max_index, :]
+
+        # transform frame
+        if reference_frame != reference_frame_to:
+            for k in range(0, ensemble.shape[1]):
+                ensemble[:, k, :] = transform_reference_frame(dt, ensemble[:, k, :], reference_frame, reference_frame_to)
+
+        ensemble[np.where(ensemble == 0)] = np.nan
+
+        # generate quantiles
+        b_m = np.nanmean(ensemble, axis=1)
+
+        b_s2p = np.nanquantile(ensemble, 0.5 + perc / 2, axis=1)
+        b_s2n = np.nanquantile(ensemble, 0.5 - perc / 2, axis=1)
+
+        b_t = np.sqrt(np.sum(ensemble**2, axis=2))
+        b_tm = np.nanmean(b_t, axis=1)
+
+        b_ts2p = np.nanquantile(b_t, 0.5 + perc / 2, axis=1)
+        b_ts2n = np.nanquantile(b_t, 0.5 - perc / 2, axis=1)
+
+        ensemble_data.append([None, None, (b_s2p, b_s2n), (b_ts2p, b_ts2n)])
+        
+        return ensemble_data

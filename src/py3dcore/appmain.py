@@ -10,7 +10,7 @@ from py3dcore.app.config import app_styles, selected_imagers #, config_sliders, 
 from py3dcore.app.modules import date_and_event_selection, fitting_and_slider_options_container, fitting_sliders, fitting_points #, final_parameters_gmodel, fitting_sliders, maps_clims
 from py3dcore.app.utils import get_insitudata
 from py3dcore.app.fitting import fitting_main
-from py3dcore.app.plotting import plot_insitu, plot_fittinglines, plot_catalog, plot_additionalinsitu, plot_fitting_results, plot_synthetic_insitu
+from py3dcore.app.plotting import plot_insitu, plot_fittinglines, plot_catalog, plot_additionalinsitu, plot_fitting_results, plot_synthetic_insitu, plot_selected_synthetic_insitu, plot_sigma
 
 
 import logging
@@ -125,7 +125,7 @@ def run():
     if st.session_state.coord_system == 'HGC':
         long_val = [0., 360.]
     else:
-        long_val = [0., 360.]
+        long_val = [-180., 180.]
     
     if 'session_state_file' in st.session_state and 'longit' in st.session_state.session_state_file['Params']:
         slider_value = st.session_state.session_state_file['Params']['longit']
@@ -196,6 +196,9 @@ def run():
                                                   kwargs={'vars': ['b_data', ]})
             
         with st.sidebar.expander('Imaging Options'):
+            # Create a Streamlit dropdown widget to select the width
+            width_options = ['80%', '100%', '120%', '140%', '160%', '180%', '200%']
+            st.selectbox('Select Image Width', width_options, index=1, key='selected_width')
             st.checkbox('View Legend', value=False, key='view_legend_insitu')
             st.checkbox('View Catalog Event', value=False, key='view_catalog_insitu')
             st.checkbox('View Fitting Points', value=False, key='view_fitting_points')
@@ -229,6 +232,10 @@ def run():
             
         if st.session_state.view_synthetic_insitu:
             plot_synthetic_insitu(st)
+        if 'df' in st.session_state:
+            plot_selected_synthetic_insitu(st)
+        if st.session_state.view_fitting_results:
+            plot_sigma(st)
         
         st.write(st.session_state.insituplot)
         
