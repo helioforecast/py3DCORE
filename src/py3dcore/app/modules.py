@@ -87,7 +87,7 @@ def fitting_and_slider_options_container(st):
         default_3d_positions = False
         if 'session_state_file' in st.session_state and '3d_positions' in st.session_state.session_state_file['Options']:
             default_3d_positions = st.session_state.session_state_file['Options']['3d_positions']
-        st.checkbox('View 3D Positions', value=default_3d_positions, key='3d_positions')
+        st.checkbox('View 3D Positions', value=default_3d_positions, key='threed_positions')
 
         # Checkbox for Insitu Data
         default_insitu_data = False
@@ -99,7 +99,7 @@ def fitting_and_slider_options_container(st):
         default_remote_imaging = False
         if 'session_state_file' in st.session_state and 'remote_imaging' in st.session_state.session_state_file['Options']:
             default_remote_imaging = st.session_state.session_state_file['Options']['remote_imaging']
-        st.checkbox('View Remote Imaging', value=default_remote_imaging, key='remote_imaging')
+        st.checkbox('View Remote Imaging', value=default_remote_imaging, key='remote_imaging', disabled = True)
 
         # Checkbox for Fitting Results
         default_fitting_results = False
@@ -270,8 +270,8 @@ def double_fitting_sliders(st):
         
             
 def fitting_points(st):
-    
-    with st.sidebar.expander('Fitting'):
+    st.sidebar.markdown('## Fitting')
+    with st.sidebar.expander('Options'):
         
         st.session_state.fitting_datetimes = []
         

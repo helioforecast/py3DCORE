@@ -25,6 +25,8 @@ wheels/
 *.egg
 MANIFEST
 debugbook.ipynb
+overview_positions_insitu_eva.ipynb
+RealTime_Guide_Notebook.ipynb
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

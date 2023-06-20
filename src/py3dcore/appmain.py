@@ -10,7 +10,7 @@ from py3dcore.app.config import app_styles, selected_imagers #, config_sliders, 
 from py3dcore.app.modules import date_and_event_selection, fitting_and_slider_options_container, fitting_sliders, fitting_points #, final_parameters_gmodel, fitting_sliders, maps_clims
 from py3dcore.app.utils import get_insitudata
 from py3dcore.app.fitting import fitting_main
-from py3dcore.app.plotting import plot_insitu, plot_fittinglines, plot_catalog, plot_additionalinsitu, plot_fitting_results, plot_synthetic_insitu, plot_selected_synthetic_insitu, plot_sigma
+from py3dcore.app.plotting import *
 
 
 import logging
@@ -113,6 +113,8 @@ def run():
                    **View Remote Imaging:**\n
                    >_Load images from various spacecraft and fit the 3D shape to them._ \n
                    **View Fitting Results:**\n
+                   >_Scroll through the results of a fitting run._\n
+                   **View Parameter Distribution:**\n
                    >_Visualize the parameter distributions of a fitting run._
                 """)    
     
@@ -197,6 +199,9 @@ def run():
             
         with st.sidebar.expander('Imaging Options'):
             # Create a Streamlit dropdown widget to select the width
+            plottinglib = st.select_slider('Switch to matplotlib to speed-up!',
+                                        options=('plotly', 'matplotlib'), value='plotly', key = "plottinglib", disabled = True, label_visibility="collapsed")
+            
             width_options = ['80%', '100%', '120%', '140%', '160%', '180%', '200%']
             st.selectbox('Select Image Width', width_options, index=1, key='selected_width')
             st.checkbox('View Legend', value=False, key='view_legend_insitu')
@@ -204,6 +209,7 @@ def run():
             st.checkbox('View Fitting Points', value=False, key='view_fitting_points')
             st.checkbox('View Fitting Results', value=False, key='view_fitting_results')
             st.checkbox('View Synthetic Insitu Data', value=False, key='view_synthetic_insitu')
+            
             
             
         ## insitu plots
@@ -237,14 +243,70 @@ def run():
         if st.session_state.view_fitting_results:
             plot_sigma(st)
         
-        st.write(st.session_state.insituplot)
-        
+        if st.session_state.plottinglib == 'plotly':
+            st.write(st.session_state.insituplot)
+        else:
+            st.write('Not yet implemented. Please switch back to plotly!')
+            #st.pyplot(st.session_state.insituplot)
+            
         plot_additionalinsitu(st)
         
     #############################################################
     # Observer and 3D Positions
     
-    
+    # View the menus
+    if st.session_state.threed_positions:
+        st.sidebar.markdown('---')
+        st.sidebar.markdown('## 3D Positions')
+        with st.sidebar.expander('Download Options'):
+            select_3d_form = st.form(key='select_3d_form')
+            if 'event_selected' in st.session_state:
+                default_observer = [st.session_state.event_selected.sc]
+            else:
+                default_observer = []
+            body_list_3d = select_3d_form.multiselect('Select Bodies',
+                                                   options=selected_imagers.planets_dict.keys(),
+                                                   default=['Sun', 'Earth'],
+                                                   key='body_list_3d')
+            sc_list_3d = select_3d_form.multiselect('Select Spacecraft',
+                                                   options=selected_imagers.bodies_dict.keys(),
+                                                   default=default_observer,
+                                                   key='sc_list_3d')
+            
+            select_3d_form.info('Select how many days should be plotted before/after the event.')
+            col1, col2 = select_3d_form.columns(2)
+            
+            col1.slider('before [days]',
+                        min_value=-6., max_value=-0.5,
+                        value=-1., step=0.5,
+                        key='threed_time_before')
+            col2.slider('after [days]',
+                        min_value=0.5, max_value=6.,
+                        value=1., step=0.5,
+                        key='threed_time_after')
+            
+            st.session_state.threedbegin = st.session_state.event_selected.begin + datetime.timedelta(days = st.session_state.threed_time_before)
+            
+            st.session_state.threedend = st.session_state.event_selected.end + datetime.timedelta(days = st.session_state.threed_time_after)
+            
+            select_3d_form.form_submit_button(label='Submit',
+                                                  on_click=delete_from_state,
+                                                  kwargs={'vars': ['threed_data', ]})
+            
+        with st.sidebar.expander('Imaging Options'):
+            # Create a Streamlit dropdown widget to select the width
+            width_options = ['80%', '100%', '120%', '140%', '160%', '180%', '200%']
+            st.selectbox('Select Image Width', width_options, index=1, key='selected_width_3d')
+            st.checkbox('View Legend', value=False, key='view_legend_3d')
+            st.checkbox('View Trajectory', value=False, key='view_trajectory_3d')
+            st.checkbox('View Catalog Events', value=False, key='view_catalog_3d')
+            
+            st.markdown('Show Bodies:')
+            for i in st.session_state.body_list_3d:
+                st.checkbox(i, value=False, key=i)
+            for i in st.session_state.sc_list_3d:
+                st.checkbox(i, value=False, key=i)
+
         
     
     #############################################################

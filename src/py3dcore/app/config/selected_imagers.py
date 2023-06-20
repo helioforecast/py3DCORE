@@ -38,10 +38,29 @@ imager_dict.update(dict.fromkeys(['HI2B'], [(a.Source('STEREO_B'), a.Detector.hi
 
 insitu_dict = ["BepiColombo",
                "DSCOVR",
-               "MESSENGER",
                "PSP",
                "SolarOrbiter",
-               "STEREO-A",
-               #"STEREO-B",
-               "VEX",
+               "STEREO A",
+               "STEREO B",
                "Wind"]
+
+'''
+Configuration for the seleced bodies.
+'''
+
+bodies_dict = {'STEREO B': ['-235', 'b'],
+               'STEREO A': ['-234', 'red'],
+               'SolarOrbiter': ['-144', 'dodgerblue'],
+               'PSP': ['-96', 'purple'],
+               'BepiColombo': ['-121', 'orange'],
+               'DSCOVR': ['-78', 'grey'],
+               'Wind': ['-8', 'darkgrey']
+              }
+
+planets_dict = {'Sun': ['10', 'yellow'],
+                'Mercury': ['199', 'darkturquoise'],
+               'Venus': ['299', 'darkorchid'],
+               'Earth': ['399', 'green'],
+               'Mars': ['499', 'maroon'],
+               'Jupiter': ['599', 'navy'],
+               }

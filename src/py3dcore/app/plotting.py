@@ -32,7 +32,7 @@ Plotting functions
 ###############################################################
 '''
 
-
+#def plot_3d_pos(st):
 
 
 '''
@@ -42,6 +42,8 @@ Plotting functions
 '''
 
 def plot_insitu(st):
+    
+    #if st.session_state.plottinglib == 'matplotlib
     
     if st.session_state.mag_coord_system == 'HEEQ':
         names = ['Bx', 'By', 'Bz']
@@ -113,6 +115,8 @@ def plot_insitu(st):
 
     
     return fig
+
+
 
 def plot_selected_synthetic_insitu(st):
 
