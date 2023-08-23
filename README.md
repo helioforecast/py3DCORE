@@ -31,13 +31,22 @@ or the original version from https://github.com/ajefweiss/py3DCORE.
 
 ------------
 
+## 3DCOREweb
+------------
+
+To start the application:
+
+    cd src/py3dcore/dashcore
+    python main.py
+    
+------------
+
 ## Notes on 3DCORE Results
 ------------
 
 3DCORE can work with several coordinate frames. Be careful to interpret results correctly.
 
 ------------
-
 ## Notes on HelioSat
 ------------
 
