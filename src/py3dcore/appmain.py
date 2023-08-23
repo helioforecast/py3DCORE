@@ -12,6 +12,8 @@ from py3dcore.app.utils import get_insitudata
 from py3dcore.app.fitting import fitting_main
 from py3dcore.app.plotting import *
 
+import copy
+
 
 import logging
 
@@ -106,6 +108,8 @@ def run():
         st.session_state.placeholder = st.empty()
         st.session_state.placeholder.markdown(""" 
                    You have several options to analyze the chosen event: \n
+                   **View 2D Positions:** \n
+                   >_Take a look at planet and spacecraft positions in 2D._ \n
                    **View 3D Positions:** \n
                    >_Take a look at planet and spacecraft positions and model the 3D shape of the CME._ \n
                    **View Insitu Data:** \n
@@ -157,7 +161,122 @@ def run():
     
     fitting_sliders(st)
     
+
+        
+        
+        
+        #############################################################
+    # 2D Positions
+    
+    # View the menus
+    if st.session_state.twod_positions:
+        st.sidebar.markdown('---')
+        st.sidebar.markdown('## 2D Positions')
+        with st.sidebar.expander('Download Options'):
+            select_2d_form = st.form(key='select_2d_form')
+            if 'event_selected' in st.session_state:
+                default_observer = [st.session_state.event_selected.sc]
+            else:
+                default_observer = []
+            body_list_2d = select_2d_form.multiselect('Select Bodies',
+                                                   options=selected_imagers.planets_dict.keys(),
+                                                   default=['Sun', 'Earth'],
+                                                   key='body_list_2d')
+            sc_list_2d = select_2d_form.multiselect('Select Spacecraft',
+                                                   options=selected_imagers.bodies_dict.keys(),
+                                                   default=default_observer,
+                                                   key='sc_list_2d')
+            
+            select_2d_form.info('Select how many days should be plotted before/after the event.')
+            col1, col2 = select_2d_form.columns(2)
+            
+            col1.slider('before [days]',
+                        min_value=-30, max_value=-1,
+                        value=-5, step=1,
+                        key='twod_time_before')
+            col2.slider('after [days]',
+                        min_value=1, max_value=30,
+                        value=5, step=1,
+                        key='twod_time_after')
+            
+            st.session_state.twobegin = st.session_state.event_selected.begin + datetime.timedelta(days = st.session_state.twod_time_before)
+            
+            st.session_state.twodend = st.session_state.event_selected.end + datetime.timedelta(days = st.session_state.twod_time_after)
+            
+            select_2d_form.form_submit_button(label='Submit',
+                                                  on_click=delete_from_state,
+                                                  kwargs={'vars': ['twod_plot_base', ]})
+            
+        with st.sidebar.expander('Imaging Options'):            
+            
+            # Create a Streamlit dropdown widget to select the width
+            width_options = ['80%', '100%', '120%', '140%', '160%', '180%', '200%']
+            st.selectbox('Select Image Width', width_options, index=1, key='selected_width_2d')
+            st.checkbox('View Legend', value=False, key='view_legend_2d')
+            st.checkbox('View Trajectory', value=False, key='view_trajectory_2d')
+            st.checkbox('View Catalog Events', value=False, key='view_catalog_2')
+
     #############################################################
+    # Observer and 3D Positions
+    
+    # View the menus
+    if st.session_state.threed_positions:
+        st.sidebar.markdown('---')
+        st.sidebar.markdown('## 3D Positions')
+        with st.sidebar.expander('Download Options'):
+            select_3d_form = st.form(key='select_3d_form')
+            if 'event_selected' in st.session_state:
+                default_observer = [st.session_state.event_selected.sc]
+            else:
+                default_observer = []
+            body_list_3d = select_3d_form.multiselect('Select Bodies',
+                                                   options=selected_imagers.planets_dict.keys(),
+                                                   default=['Sun', 'Earth'],
+                                                   key='body_list_3d')
+            sc_list_3d = select_3d_form.multiselect('Select Spacecraft',
+                                                   options=selected_imagers.bodies_dict.keys(),
+                                                   default=default_observer,
+                                                   key='sc_list_3d')
+            
+            select_3d_form.info('Select how many days should be plotted before/after the event.')
+            col1, col2 = select_3d_form.columns(2)
+            
+            col1.slider('before [days]',
+                        min_value=-6., max_value=-0.5,
+                        value=-1., step=0.5,
+                        key='threed_time_before')
+            col2.slider('after [days]',
+                        min_value=0.5, max_value=6.,
+                        value=1., step=0.5,
+                        key='threed_time_after')
+            
+            st.session_state.threedbegin = st.session_state.event_selected.begin + datetime.timedelta(days = st.session_state.threed_time_before)
+            
+            st.session_state.threedend = st.session_state.event_selected.end + datetime.timedelta(days = st.session_state.threed_time_after)
+            
+            select_3d_form.form_submit_button(label='Submit',
+                                                  on_click=delete_from_state,
+                                                  kwargs={'vars': ['threed_data', ]})
+            
+        with st.sidebar.expander('Imaging Options'):            
+            
+            # Create a Streamlit dropdown widget to select the width
+            width_options = ['80%', '100%', '120%', '140%', '160%', '180%', '200%']
+            st.selectbox('Select Image Width', width_options, index=1, key='selected_width_3d')
+            st.checkbox('View Legend', value=False, key='view_legend_3d')
+            st.checkbox('View Trajectory', value=False, key='view_trajectory_3d')
+            st.checkbox('View Fluxrope', value=False, key='view_fluxrope')
+            
+            st.markdown('Show Bodies:')
+            for i in st.session_state.body_list_3d:
+                st.checkbox(i, value=False, key=i)
+            for i in st.session_state.sc_list_3d:
+                st.checkbox(i, value=False, key=i)
+        
+        st.session_state.twodplot = plot_2d_pos(st)
+
+        
+        #############################################################
     # Insitu Data
     
     # View the fittings table
@@ -225,10 +344,16 @@ def run():
             try:
                 st.session_state.b_data, st.session_state.t_data, st.session_state.pos_data = get_insitudata(st.session_state.mag_coord_system, st.session_state.event_selected.sc, st.session_state.insitubegin, st.session_state.insituend)
                 ph.success("✅ Successfully downloaded " + st.session_state.event_selected.sc + " Insitu Data")
+                
             except:
                 ph.info("❌ Failed to download " + st.session_state.event_selected.sc + " Insitu Data - Try downloading kernel manually or adding custom file in HelioSat Folder!")
+        if 'insituplot_base' not in st.session_state:
+            print('new')
+            st.session_state.insituplot_base = plot_insitu(st)
                 
-        st.session_state.insituplot = plot_insitu(st)
+        st.session_state.insituplot = copy.deepcopy(st.session_state.insituplot_base)
+                
+        
         
         if st.session_state.view_fitting_points:
             plot_fittinglines(st)
@@ -251,64 +376,6 @@ def run():
             
         plot_additionalinsitu(st)
         
-    #############################################################
-    # Observer and 3D Positions
-    
-    # View the menus
-    if st.session_state.threed_positions:
-        st.sidebar.markdown('---')
-        st.sidebar.markdown('## 3D Positions')
-        with st.sidebar.expander('Download Options'):
-            select_3d_form = st.form(key='select_3d_form')
-            if 'event_selected' in st.session_state:
-                default_observer = [st.session_state.event_selected.sc]
-            else:
-                default_observer = []
-            body_list_3d = select_3d_form.multiselect('Select Bodies',
-                                                   options=selected_imagers.planets_dict.keys(),
-                                                   default=['Sun', 'Earth'],
-                                                   key='body_list_3d')
-            sc_list_3d = select_3d_form.multiselect('Select Spacecraft',
-                                                   options=selected_imagers.bodies_dict.keys(),
-                                                   default=default_observer,
-                                                   key='sc_list_3d')
-            
-            select_3d_form.info('Select how many days should be plotted before/after the event.')
-            col1, col2 = select_3d_form.columns(2)
-            
-            col1.slider('before [days]',
-                        min_value=-6., max_value=-0.5,
-                        value=-1., step=0.5,
-                        key='threed_time_before')
-            col2.slider('after [days]',
-                        min_value=0.5, max_value=6.,
-                        value=1., step=0.5,
-                        key='threed_time_after')
-            
-            st.session_state.threedbegin = st.session_state.event_selected.begin + datetime.timedelta(days = st.session_state.threed_time_before)
-            
-            st.session_state.threedend = st.session_state.event_selected.end + datetime.timedelta(days = st.session_state.threed_time_after)
-            
-            select_3d_form.form_submit_button(label='Submit',
-                                                  on_click=delete_from_state,
-                                                  kwargs={'vars': ['threed_data', ]})
-            
-        with st.sidebar.expander('Imaging Options'):
-            # Create a Streamlit dropdown widget to select the width
-            width_options = ['80%', '100%', '120%', '140%', '160%', '180%', '200%']
-            st.selectbox('Select Image Width', width_options, index=1, key='selected_width_3d')
-            st.checkbox('View Legend', value=False, key='view_legend_3d')
-            st.checkbox('View Trajectory', value=False, key='view_trajectory_3d')
-            st.checkbox('View Catalog Events', value=False, key='view_catalog_3d')
-            
-            st.markdown('Show Bodies:')
-            for i in st.session_state.body_list_3d:
-                st.checkbox(i, value=False, key=i)
-            for i in st.session_state.sc_list_3d:
-                st.checkbox(i, value=False, key=i)
-
-        
-    
     #############################################################
     # Remote Sensing
     

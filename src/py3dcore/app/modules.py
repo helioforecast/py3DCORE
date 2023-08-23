@@ -82,12 +82,19 @@ def fitting_and_slider_options_container(st):
         col2.radio('Geometrical Model', options=geo_model_options,
                    index=geo_model_options.index(default_geo_model),
                    key='geo_model')
+        
+        # Checkbox for 2D Positions
+        default_2d_positions = False
+        if 'session_state_file' in st.session_state and '2d_positions' in st.session_state.session_state_file['Options']:
+            default_2d_positions = st.session_state.session_state_file['Options']['2d_positions']
+        st.checkbox('View 2D Positions', value=default_2d_positions, key='twod_positions')
 
         # Checkbox for 3D Positions
         default_3d_positions = False
         if 'session_state_file' in st.session_state and '3d_positions' in st.session_state.session_state_file['Options']:
             default_3d_positions = st.session_state.session_state_file['Options']['3d_positions']
-        st.checkbox('View 3D Positions', value=default_3d_positions, key='threed_positions')
+        st.checkbox('View 3D Positions', value=default_3d_positions, key='threed_positions', disabled = True)
+        
 
         # Checkbox for Insitu Data
         default_insitu_data = False

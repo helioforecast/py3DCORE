@@ -9,6 +9,8 @@ import plotly.figure_factory as ff
 
 import heliosat
 
+import streamlit as st
+
 import pickle as p
 import seaborn as sns
 
@@ -25,6 +27,23 @@ import traceback
 '''
 Plotting functions
 '''
+
+'''
+###############################################################
+########################### 2D PLOTS ###########################
+###############################################################
+'''
+
+def plot_2d_pos(st):
+    st.session_state.twodcontainer = st.session_state.placeholder.container()
+    if 'twod_plot_base' in st.session_state:
+        return st.session_state.twod_plot_base
+    else:
+        ph2d = st.session_state.twodcontainer.empty()
+        ph2d.info("⏳ Downloading Position Data...")
+        
+        
+        
 
 '''
 ###############################################################
