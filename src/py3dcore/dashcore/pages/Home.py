@@ -125,7 +125,7 @@ manualform = dbc.Card(
                        "PSP",
                        "SolarOrbiter",
                        "STEREO A",
-                       "STEREO B",
+                       #"STEREO B",
                        "Wind"],
                 placeholder='Select a spacecraft'
             ),
@@ -145,7 +145,7 @@ accordion = dbc.Accordion(
                           style={"pointer-events": "none", "opacity": 0.5}
                          ),
         dbc.AccordionItem(manualform, title="Manual", 
-                          style={"pointer-events": "none", "opacity": 0.5}
+                          #style={"pointer-events": "none", "opacity": 0.5}
                          ),
         dbc.AccordionItem(fileform, title="Realtime", 
                           style={"pointer-events": "none", "opacity": 0.5}

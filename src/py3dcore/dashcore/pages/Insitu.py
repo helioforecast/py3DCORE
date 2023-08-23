@@ -70,6 +70,11 @@ def update_sliderfiginsitu(graph, infodata, launchlabel,plotoptions, refframe, *
         sc = infodata['sc'][0]
         begin = infodata['begin'][0]
         end = infodata['end'][0]
+        
+        if infodata['id'][0] == 'I':
+            opac = 0
+        else:
+            opac = 0.5
 
         dateFormat = "%Y-%m-%dT%H:%M:%S%z"
         dateFormat2 = "%Y-%m-%d %H:%M:%S"
@@ -101,7 +106,7 @@ def update_sliderfiginsitu(graph, infodata, launchlabel,plotoptions, refframe, *
                 x0=begin,
                 x1=end,
                 fillcolor="LightSalmon", 
-                opacity=0.5,
+                opacity=opac,
                 layer="below",
                 line_width=0
         )

@@ -282,11 +282,11 @@ def get_insitudata(mag_coord_system, sc, insitubegin, insituend):
         if mag_coord_system == 'RTN':
             reference_frame = 'SPP_RTN'
         observer = 'PSP'
-    elif sc == 'SolarOrbiter':
+    elif (sc == 'SolarOrbiter') or (sc == 'SOLO'):
         if mag_coord_system == 'RTN':
             reference_frame = 'SOLO_SUN_RTN'
         observer = 'SolO'
-    elif sc == 'STEREO-A':
+    elif (sc == 'STEREO-A') or (sc == "STEREO_A"):
         if mag_coord_system == 'RTN':
             reference_frame = 'STAHGRTN'
         observer = 'STA'
@@ -473,7 +473,7 @@ def load_pos_data(mag_coord_system, sc, date):
         color = 'black'
         coords = astrospice.generate_coords('Solar probe plus', times).transform_to(frame)
     
-    elif (sc == "STEREO-A"):
+    elif (sc == "STEREO-A") or (sc == "STEREO_A"):
         kernels_sta = astrospice.registry.get_kernels('stereo-a', 'predict')[0]
         color = 'darkred'
         coords = astrospice.generate_coords('Stereo ahead', times).transform_to(frame)
@@ -524,7 +524,7 @@ def get_posdata(mag_coord_system, sc, date, threed = False):
         coords_future = astrospice.generate_coords('Solar probe plus', times_future).transform_to(frame)
         coords_now = astrospice.generate_coords('Solar probe plus', now_time).transform_to(frame)
     
-    elif (sc == "STEREO-A"):
+    elif (sc == "STEREO-A") or (sc == "STEREO_A"):
         kernels_sta = astrospice.registry.get_kernels('stereo-a', 'predict')[0]
         color = 'darkred'
         coords_past = astrospice.generate_coords('Stereo ahead', times_past).transform_to(frame)
@@ -690,7 +690,10 @@ def getbodytraces(mag_coord_system, sc, date, threed = False):
     '''
     
     
-    date_object = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S%z")
+    try:
+        date_object = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S%z")
+    except:
+        date_object = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     now_time = Time(date_object, scale='utc')
     frame = HeliographicStonyhurst()
     

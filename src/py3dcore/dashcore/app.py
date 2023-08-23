@@ -42,6 +42,20 @@ app.config.suppress_callback_exceptions = True
 ################# components
 ############################
 
+success_icon = dmc.ThemeIcon(
+                     DashIconify(icon='mdi:check-bold', width=18, color="black"),
+                     size=40,
+                     radius=40,
+                     style={"backgroundColor": "#eaeaea", "marginRight": "12px"},
+                 )
+
+fail_icon = dmc.ThemeIcon(
+                     DashIconify(icon='ph:x-bold', width=18, color="black"),
+                     size=40,
+                     radius=40,
+                     style={"backgroundColor": "#eaeaea", "marginRight": "12px"},
+                 )
+
 
 launchdatepicker = html.Div(
     [
@@ -106,7 +120,10 @@ reference_frame = html.Div(
                     width={"size": 4},  # Adjust the width as needed
                 ),
                 dbc.Col(
-                    dbc.Spinner(id="loadgraphstorespinner"),
+                    html.Div(id = "loadgraphstoreicon", 
+                             children = "",
+                            ),
+                    #dbc.Spinner(id="loadgraphstorespinner"),
                     width={"size": 2},  # Adjust the width as needed
                     #style={"textAlign": "right"},  # Align the button to the right within its column
                 ),
@@ -255,7 +272,7 @@ app.layout = dmc.Container(
     dcc.Store(id='graphstore', storage_type='local'),
     dcc.Store(id='prevhash', storage_type='local'),
     dcc.Store(id='posstore', storage_type='local'),
-    dcc.Store(id='coronostore', storage_type='local'),
+    #dcc.Store(id='coronostore', storage_type='local'),
     html.Label(id="try-label", 
                children="Launch Time:", 
                style={"font-size": "12px", 
@@ -327,8 +344,9 @@ def save(path: str, extra_args: Any) -> None:
         os.makedirs(os.path.dirname(path))
     
     with open(path, "wb") as fh:
-        pickle.dump(extra_args, fh)
+        pickle.dump(extra_args, fh)        
         
+
         
 @app.long_callback(
     Output("insitufitgraph", "figure"),
@@ -503,6 +521,11 @@ def plot_insitufig(_, graph, plotoptions, tabledata, infodata, selectedrows, ncl
         sc = infodata['sc'][0]
         begin = infodata['begin'][0]
         end = infodata['end'][0]
+        
+        if infodata['id'][0] == 'I':
+            opac = 0
+        else:
+            opac = 0.3
 
         dateFormat = "%Y-%m-%dT%H:%M:%S%z"
         dateFormat2 = "%Y-%m-%d %H:%M:%S"
@@ -534,7 +557,7 @@ def plot_insitufig(_, graph, plotoptions, tabledata, infodata, selectedrows, ncl
                 x0=begin,
                 x1=end,
                 fillcolor="LightSalmon", 
-                opacity=0.3,
+                opacity=opac,
                 layer="below",
                 line_width=0
         )
@@ -544,13 +567,13 @@ def plot_insitufig(_, graph, plotoptions, tabledata, infodata, selectedrows, ncl
 @app.long_callback(
     Output("graphstore", "data"),
     Output("prevhash","data"),
+    Output("loadgraphstoreicon", "children"),
     Input("event-info","data"),
     Input("reference_frame","value"),
     State("prevhash", "data"),
     running = [
-        (Output("loadgraphstorespinner", "style"),
-            {"visibility": "visible"},
-            {"visibility": "hidden"}
+        (Output("loadgraphstoreicon", "children"),
+            dbc.Spinner(), " "
         ), 
     ]
 )
@@ -564,7 +587,7 @@ def generate_graphstore(infodata, reference_frame, prevhash):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     
     if (newhash == "No event selected") or (newhash == None):
-        return {}, newhash
+        return {}, newhash, " "
     
     #### intermediate stuff
     if reference_frame == "HEEQ":
@@ -605,62 +628,33 @@ def generate_graphstore(infodata, reference_frame, prevhash):
     insituend = end + datetime.timedelta(hours=24)
     
     try:
+        print(sc)
         b_data, t_data, pos_data = get_insitudata(reference_frame, sc, insitubegin, insituend)
         
         view_legend_insitu = True
         fig = plot_insitu(names, t_data, b_data, view_legend_insitu) 
-    except:
-        # Create the figure
-        fig = go.Figure()
-
-        # Add the text annotation to the figure
-        fig.update_layout(
-            annotations=[
-                dict(
-                    x=0.5,
-                    y=0.65,
-                    xref="paper",
-                    yref="paper",
-                    text="Error downloading spacecraft data.",
-                    showarrow=False,
-                    font=dict(size=18),
-                ),
-                dict(
-                    x=0.5,
-                    y=0.35,
-                    xref="paper",
-                    yref="paper",
-                    text="Try downloading manually and place within heliosat.",
-                    showarrow=False,
-                    font=dict(size=18),
-                )
-            ],
-        )
-
-        # Update the layout to hide the grid and axis and adjust the margin
-        fig.update_layout(
-            xaxis_showgrid=False,
-            yaxis_showgrid=False,
-            xaxis_zeroline=False,
-            yaxis_zeroline=False,
-            xaxis_showticklabels=False,
-            yaxis_showticklabels=False,
-            margin=dict(l=20, r=20, t=20, b=20),  # Adjust the margin to fit the text
-        )
+    except Exception as e:
+        print("An error occurred:", e)
+        return {}, newhash, fail_icon
     
     bodytraces = getbodytraces(reference_frame, sc, infodata['processday'][0])
     
     # Extract the date using regular expression
     date_pattern = r'(\d{8})'
+    
     match = re.search(date_pattern, newhash[0])
     if match:
+        extracted_date = match.group(1)
+        extracted_datetime = datetime.datetime.strptime(extracted_date, '%Y%m%d')
+    else:
+        match = re.search(date_pattern, newhash)
         extracted_date = match.group(1)
         extracted_datetime = datetime.datetime.strptime(extracted_date, '%Y%m%d')
     
     bodydata = load_body_data(reference_frame, extracted_datetime)
     
     
-    return {'fig': fig,  'b_data': b_data, 't_data': t_data, 'pos_data': pos_data, 'names': names, 'bodytraces': bodytraces, 'bodydata': bodydata}, newhash
+    return {'fig': fig,  'b_data': b_data, 't_data': t_data, 'pos_data': pos_data, 'names': names, 'bodytraces': bodytraces, 'bodydata': bodydata}, newhash, success_icon
 
 
 @app.long_callback(
